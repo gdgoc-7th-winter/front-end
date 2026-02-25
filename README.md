@@ -5,17 +5,23 @@
 
 ---
 
-## 📦 기술 스택 한줄로 요약
+## 📦 기술 스택 요약
 
-Vite (React) · TypeScript · Tailwind CSS · TanStack Query · React Router DOM · Zustand · React Hook Form · Axios
+- Vite (React) (7.3.1)
+- TypeScript (5.9.3)
+- Tailwind CSS (4.2.1)
+- TanStack Query (5.90.21)
+- React Router DOM (7.13.0)
+- Zustand (5.0.11)
+- React Hook Form (7.71.2)
+- Axios (1.13.5)
 
 ---
 
-> 버전은 세팅 이후 작성할 예정
 
 ## 🚀 프레임워크
 
-### Vite (React)
+### Vite (React) (7.3.1)
 
 Vite는 빠른 개발 서버 구동과 뛰어난 HMR(Hot Module Replacement) 성능을 제공합니다.  
 불필요한 번들링 과정을 줄여 개발 경험(DX)을 향상시키고, 경량화된 빌드 결과물을 생성할 수 있어 생산성과 성능을 동시에 확보할 수 있습니다.
@@ -26,7 +32,7 @@ React는 컴포넌트 기반 구조를 통해 UI를 재사용 가능하게 설�
 
 ## 🟦 프로그래밍 언어
 
-### TypeScript
+### TypeScript (5.9.3)
 
 TypeScript를 도입하여 정적 타입 기반 개발 환경을 구축했습니다.  
 API 응답 구조와 컴포넌트 props를 명확하게 정의함으로써 런타임 에러를 줄이고 유지보수성을 높입니다.  
@@ -36,7 +42,7 @@ API 응답 구조와 컴포넌트 props를 명확하게 정의함으로써 런�
 
 ## 🎨 스타일링(CSS 프레임워크)
 
-### Tailwind CSS
+### Tailwind CSS (4.2.1)
 
 Tailwind는 유틸리티 퍼스트 CSS 프레임워크로, 빠른 UI 개발과 일관된 디자인 시스템 유지를 가능하게 합니다.  
 별도의 CSS 파일 관리 부담을 줄이고, 클래스 기반 스타일링으로 컴포넌트 단위 개발에 최적화되어 있습니다.
@@ -45,7 +51,7 @@ Tailwind는 유틸리티 퍼스트 CSS 프레임워크로, 빠른 UI 개발과 �
 
 ## 🔄 상태 관리(서버)
 
-### TanStack Query
+### TanStack Query (5.90.21)
 
 TanStack Query는 서버 상태를 효율적으로 관리하기 위한 라이브러리입니다.  
 데이터 캐싱, 자동 리패칭, 로딩/에러 상태 관리 등을 통해 비동기 데이터 처리를 단순화합니다.  
@@ -55,7 +61,7 @@ TanStack Query는 서버 상태를 효율적으로 관리하기 위한 라이브
 
 ## 🧭 라우팅
 
-### React Router DOM
+### React Router DOM (7.13.0)
 
 React Router DOM을 사용하여 SPA 환경에서 URL 기반 라우팅을 구현합니다.  
 페이지 전환, 동적 라우팅, 인증 기반 접근 제어 등을 유연하게 구성할 수 있습니다.
@@ -64,7 +70,7 @@ React Router DOM을 사용하여 SPA 환경에서 URL 기반 라우팅을 구현
 
 ## 🗂️ 상태 관리(클라이언트)
 
-### Zustand
+### Zustand (5.0.11)
 
 Zustand는 가볍고 직관적인 전역 상태 관리 라이브러리입니다.  
 복잡한 보일러플레이트 없이 간단한 전역 상태를 관리할 수 있으며, UI 상태와 서버 상태를 명확히 분리하는 데 적합합니다.
@@ -73,7 +79,7 @@ Zustand는 가볍고 직관적인 전역 상태 관리 라이브러리입니다.
 
 ## 📝 폼 관리
 
-### React Hook Form
+### React Hook Form (7.71.2)
 
 React Hook Form은 성능 중심의 폼 상태 관리 라이브러리입니다.  
 불필요한 리렌더링을 최소화하며, 유효성 검사 로직을 효율적으로 구성할 수 있습니다.  
@@ -83,7 +89,7 @@ React Hook Form은 성능 중심의 폼 상태 관리 라이브러리입니다.
 
 ## 🌐 API 연결
 
-### Axios
+### Axios (1.13.5)
 
 Axios는 HTTP 요청을 보다 구조적으로 관리하기 위해 사용합니다.  
 인터셉터를 통해 토큰 처리, 공통 에러 핸들링, 요청/응답 로깅 등을 중앙 집중적으로 관리할 수 있습니다.
