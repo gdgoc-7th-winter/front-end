@@ -7,7 +7,7 @@ import { FreeInfoPage } from "./pages/FreeInfoPage";
 import { HomePage } from "./pages/HomePage";
 import { LecturePage } from "./pages/LecturePage";
 import { LoginPage } from "./pages/LoginPage";
-import "./styles/global.css";
+import "./global.css";
 
 function AppRouter() {
   return (
