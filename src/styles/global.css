@@ -1,0 +1,11 @@
+﻿@import "tailwindcss";
+
+:root {
+  font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #fefeff;
+  color: #0f172a;
+}
