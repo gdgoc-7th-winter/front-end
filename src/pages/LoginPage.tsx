@@ -46,7 +46,10 @@ export function LoginPage() {
               </button>
             </div>
 
-            <button className="h-12 rounded-xl bg-[#87bcf5] text-base font-medium text-[#f7faff]" type="button">
+            <button
+              className="h-12 rounded-xl bg-[var(--color-primary-main)] text-base font-medium text-[#f7faff] transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)]"
+              type="button"
+            >
               로그인
             </button>
           </div>

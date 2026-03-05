@@ -37,18 +37,18 @@ export function HomePage() {
   ];
 
   return (
-    <section className="grid gap-14">
+    <section className="grid gap-10 md:gap-14">
       <div className="grid gap-5 lg:grid-cols-[1fr_336px]">
-        <article className="relative min-h-[355px] overflow-hidden rounded-3xl border border-slate-200 bg-slate-900">
+        <article className="relative min-h-[280px] overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 md:min-h-[355px]">
           <img
             alt="hero"
             className="absolute inset-0 h-full w-full object-cover opacity-70"
             src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1600&q=80"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/40 to-slate-950/95" />
-          <div className="absolute inset-x-0 bottom-0 p-7 text-white">
+          <div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
             <p className="text-xs text-white/70">코딩 테스트 / 백준 / 실전 문제</p>
-            <h1 className="mt-2 text-[28px] font-bold leading-tight tracking-[-0.03em] md:text-[40px]">
+            <h1 className="mt-2 text-[24px] font-bold leading-tight tracking-[-0.03em] md:text-[40px]">
               오늘의 코딩테스트 문제 : 백준 18939
             </h1>
             <div className="mt-4 flex items-center justify-between text-sm">
@@ -58,7 +58,7 @@ export function HomePage() {
           </div>
         </article>
 
-        <aside className="rounded-3xl border border-slate-200 bg-white/80 p-6 backdrop-blur-sm">
+        <aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 backdrop-blur-sm md:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-800">주간 랭킹</h2>
             <span className="text-slate-400">‹ ›</span>
@@ -67,7 +67,7 @@ export function HomePage() {
             {ranking.map((user) => (
               <div key={user.rank} className="grid grid-cols-[18px_48px_1fr] items-center gap-3">
                 <span className="text-sm font-bold text-slate-900">{user.rank}</span>
-                <div className="size-12 rounded-xl border border-slate-200 bg-[linear-gradient(140deg,#bcd2f4,#8da8d2)]" />
+                <img src='default_profile.png' width={40} className="pb-1" />
                 <div>
                   <p className="text-sm font-bold text-slate-900">
                     {user.name}
@@ -83,7 +83,7 @@ export function HomePage() {
         </aside>
       </div>
 
-      <div className="h-[200px] overflow-hidden rounded-2xl border border-slate-200">
+      <div className="h-[140px] overflow-hidden rounded-2xl border border-slate-200 md:h-[200px]">
         <img
           alt="banner"
           className="h-full w-full object-cover"
@@ -92,7 +92,7 @@ export function HomePage() {
       </div>
 
       <section>
-        <h2 className="mb-7 text-[34px] font-bold tracking-[-0.03em] text-slate-900">실시간 인기글</h2>
+        <h2 className="mb-5 text-[28px] font-bold tracking-[-0.03em] text-slate-900 md:mb-7 md:text-[34px]">실시간 인기글</h2>
         <div className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
           {popular.map((title, idx) => (
             <article key={title} className="grid grid-cols-[26px_1fr_84px] gap-3 max-[640px]:grid-cols-[26px_1fr]">
@@ -101,7 +101,7 @@ export function HomePage() {
                 <p className="mt-1 text-[10px] font-bold text-[#74a8ff]">NEW</p>
               </div>
               <div>
-                <h3 className="text-[17px] font-semibold leading-7 text-slate-900">{title}</h3>
+                <h3 className="text-[16px] font-semibold leading-6 text-slate-900 md:text-[17px] md:leading-7">{title}</h3>
                 <p className="mt-2 text-xs text-slate-500">자유/정보 게시판</p>
                 <p className="mt-2 text-[11px] text-slate-400">프로덕트 밸리 · 26.02.24 · ♡ 128 · ◌ 42 · ◔ 1.2k</p>
               </div>
@@ -112,12 +112,12 @@ export function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-7 text-[34px] font-bold tracking-[-0.03em] text-slate-900">최신 게시글</h2>
+        <h2 className="mb-5 text-[28px] font-bold tracking-[-0.03em] text-slate-900 md:mb-7 md:text-[34px]">최신 게시글</h2>
         <div className="grid gap-6">
           {latest.map((post, idx) => (
             <article key={`${post.title}-${idx}`} className={`grid gap-4 pt-6 ${idx > 0 ? "border-t border-slate-200" : ""}`}>
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-lg bg-[linear-gradient(140deg,#88c2a7,#f9c6aa)]" />
+                <img src='default_profile.png' width={40} className="pb-1"/>
                 <div>
                   <p className="text-sm font-bold text-slate-900">
                     {post.author}
@@ -126,11 +126,14 @@ export function HomePage() {
                   <p className="text-[11px] text-slate-400">{post.dept}</p>
                 </div>
               </div>
-              <h3 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-slate-900">{post.title}</h3>
+              <h3 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-slate-900 md:text-[28px]">{post.title}</h3>
               <p className="text-sm leading-7 text-slate-600">{post.excerpt}</p>
               <div className="flex flex-wrap gap-2.5">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="rounded-lg bg-white px-3 py-1.5 text-xs text-[#87bcf5] shadow-[0_2px_8px_rgba(135,188,245,0.2)]">
+                  <span
+                    key={tag}
+                    className="rounded-lg bg-white px-3 py-1.5 text-xs text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
+                  >
                     {tag}
                   </span>
                 ))}

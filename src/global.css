@@ -1,11 +1,23 @@
 ﻿@import "tailwindcss";
 
 :root {
-  font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+  font-family: "Asta Sans", sans-serif;
+  --color-primary-main: #87BCF5;
+  --color-primary-hover: #6EAAF1;
+  --color-primary-active: #589BEA;
 }
 
+
 body {
+  font-family: "Asta Sans", sans-serif;
   margin: 0;
   background: #fefeff;
   color: #0f172a;
+  overflow-x: hidden;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
 }

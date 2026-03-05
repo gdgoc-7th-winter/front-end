@@ -6,7 +6,7 @@ export function MainLayout() {
   return (
     <div className="min-h-screen bg-[#fefeff]">
       <Header />
-      <main className="mx-auto mt-6 w-full max-w-[1024px] px-4 pb-20 md:mt-12">
+      <main className="mx-auto mt-4 w-full max-w-[1024px] px-4 pb-28 md:mt-8 md:pb-20">
         <Outlet />
       </main>
       <Footer />

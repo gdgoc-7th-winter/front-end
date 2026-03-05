@@ -21,11 +21,11 @@ export function FreeInfoDetailPage() {
   const { postId } = useParams();
 
   return (
-    <section className="grid justify-center">
-      <article className="w-full max-w-[1024px] overflow-hidden rounded-[32px] bg-white shadow-[0_2px_16px_rgba(15,23,42,0.04)]">
-        <header className="border-b border-slate-50 px-5 py-8 md:px-10 md:py-10">
+    <section className="grid justify-center gap-6">
+      <article className="w-full max-w-[1024px] overflow-hidden rounded-[24px] bg-white shadow-[0_2px_16px_rgba(15,23,42,0.04)] md:rounded-[32px]">
+        <header className="border-b border-slate-50 px-4 py-7 md:px-10 md:py-10">
           <p className="text-xs text-slate-400">{detailData.date} · 자유/정보 게시판</p>
-          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.02em] text-[#0f172b] md:text-[40px]">
+          <h1 className="mt-3 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-[#0f172b] md:mt-4 md:text-[40px]">
             {detailData.title}
           </h1>
 
@@ -43,7 +43,7 @@ export function FreeInfoDetailPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-[0_2px_4px_rgba(135,188,245,0.15)]">
+              <button className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-600 shadow-[0_2px_4px_rgba(135,188,245,0.15)] md:px-4">
                 팔로우
               </button>
               <button className="grid size-10 place-items-center rounded-xl bg-white text-slate-400 shadow-[0_2px_4px_rgba(135,188,245,0.15)]">
@@ -53,15 +53,15 @@ export function FreeInfoDetailPage() {
           </div>
         </header>
 
-        <div className="grid gap-8 px-5 py-8 md:px-10 md:py-10">
-          <p className="text-[17px] leading-[1.75] text-slate-800">
+        <div className="grid gap-8 px-4 py-7 md:px-10 md:py-10">
+          <p className="text-[16px] leading-[1.7] text-slate-800 md:text-[17px] md:leading-[1.75]">
             안녕하세요! 비전공자로서 개발자의 꿈을 키운지 딱 6개월 만에 목표하던 기업 중 한 곳에 최종 합격하게 되어 그 과정을
             공유하고자 합니다. 저와 같은 고민을 하시는 분들께 조금이나마 도움이 되었으면 좋겠습니다.
           </p>
 
           <div>
             <h2 className="text-xl font-bold text-slate-900">1. 베이스 다지기 (1~2개월 차)</h2>
-            <p className="mt-3 text-[17px] leading-[1.75] text-slate-800">
+            <p className="mt-3 text-[16px] leading-[1.7] text-slate-800 md:text-[17px] md:leading-[1.75]">
               처음에는 무엇부터 시작해야 할지 몰라 무작정 CS 기초와 JavaScript 기본 문법에 집중했습니다. 특히 클로저, 프로토타입
               같은 핵심 개념을 완벽히 이해할 때까지 반복 학습했습니다.
             </p>
@@ -96,7 +96,7 @@ export function FreeInfoDetailPage() {
             </pre>
           </div>
 
-          <p className="text-[17px] leading-[1.75] text-slate-800">
+          <p className="text-[16px] leading-[1.7] text-slate-800 md:text-[17px] md:leading-[1.75]">
             포기하지 않고 끝까지 완주하는 것이 가장 중요합니다. 여러분도 하실 수 있습니다!
           </p>
 
@@ -106,19 +106,24 @@ export function FreeInfoDetailPage() {
               "비전공자",
               "네카라쿠배",
             ].map((tag) => (
-              <span key={tag} className="rounded-lg bg-white px-3 py-1.5 text-xs text-[#87bcf5] shadow-[0_2px_8px_rgba(135,188,245,0.2)]">
+              <span
+                key={tag}
+                className="rounded-lg bg-white px-3 py-1.5 text-xs text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
+              >
                 {tag}
               </span>
             ))}
           </div>
         </div>
 
-        <footer className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 px-5 py-8 md:flex-row md:items-center md:justify-between md:px-10">
+        <footer className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 px-4 py-7 md:flex-row md:items-center md:justify-between md:px-10">
           <div className="flex items-center gap-3">
-            <button className="rounded-2xl bg-[#87bcf5] px-6 py-3 text-sm font-bold text-white">👍 좋아요 128</button>
-            <button className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600">스크랩</button>
+            <button className="rounded-2xl bg-[var(--color-primary-main)] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] md:px-6">
+              👍 좋아요 128
+            </button>
+            <button className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 md:px-6">스크랩</button>
           </div>
-          <div className="flex gap-3 text-sm text-slate-400">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-400">
             <span>◔ 1.24k</span>
             <span>◌ 42</span>
             <span>▯ 812</span>
@@ -129,7 +134,7 @@ export function FreeInfoDetailPage() {
         </footer>
       </article>
 
-      <section className="mt-8 w-full max-w-[1024px] rounded-3xl bg-white px-5 py-8 md:px-10">
+      <section className="w-full max-w-[1024px] rounded-3xl bg-white px-4 py-7 md:px-10 md:py-8">
         <h2 className="text-xl font-bold text-slate-900">댓글 42</h2>
 
         <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -139,7 +144,9 @@ export function FreeInfoDetailPage() {
           />
           <div className="mt-3 flex items-center justify-between">
             <span className="text-xs text-slate-400">0 / 1000</span>
-            <button className="rounded-xl bg-[#87bcf5] px-4 py-2 text-sm font-semibold text-white">등록</button>
+            <button className="rounded-xl bg-[var(--color-primary-main)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)]">
+              등록
+            </button>
           </div>
         </div>
 
@@ -156,12 +163,12 @@ export function FreeInfoDetailPage() {
               정말 정성스러운 후기 감사합니다! 저도 비전공자라 고민이 많았는데 갈피를 잡는 데 큰 도움이 됐어요.
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-400">
-              <span className="text-[#589bea]">👍 12</span>
+              <span className="text-[var(--color-primary-active)]">👍 12</span>
               <button>답글 쓰기</button>
             </div>
           </div>
 
-          <div className="ml-6 grid gap-3 md:ml-10">
+          <div className="ml-4 grid gap-3 md:ml-10">
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-lg bg-[linear-gradient(140deg,#88c2a7,#f9c6aa)]" />
               <div>
@@ -173,7 +180,7 @@ export function FreeInfoDetailPage() {
               민수님도 충분히 하실 수 있습니다! 궁금한 점 있으시면 언제든 물어봐주세요 :)
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-400">
-              <span className="text-[#589bea]">👍 2</span>
+              <span className="text-[var(--color-primary-active)]">👍 2</span>
               <button>답글 쓰기</button>
             </div>
           </div>

@@ -15,7 +15,7 @@ function IconButton({ label, children }: { label: string; children: ReactNode })
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t border-black/10 bg-[#f1f5f9] px-6 pb-12 pt-12 md:px-14">
+    <footer className="mt-16 hidden border-t border-black/10 bg-[#f1f5f9] px-6 pb-12 pt-12 md:block md:px-14">
       <div className="mx-auto flex w-full max-w-[1328px] flex-col justify-between gap-10 lg:flex-row">
         <div className="max-w-[320px]">
           <h2 className="text-[32px] font-extrabold tracking-[-0.02em] text-[#0f1724]">HUFS.DEV</h2>
