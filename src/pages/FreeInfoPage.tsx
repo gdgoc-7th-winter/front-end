@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { UserTierIcon } from "../components/UserTierIcon";
+import { Bookmark, Eye, MessageCircle, ThumbsUp } from "lucide-react";
 type PostItem = {
   id: number;
   author: string;
@@ -94,8 +95,8 @@ function Badge({ badge }: { badge: "루비" | "다이아" }) {
 
 export function FreeInfoPage() {
   return (
-    <section className="grid gap-12">
-      <h1 className="text-4xl font-bold tracking-[-0.02em] text-black md:text-[44px]">자유/정보 게시판</h1>
+    <section className="grid gap-8 md:gap-12">
+      <h1 className="text-3xl font-bold tracking-[-0.02em] text-black md:text-[44px]">자유/정보 게시판</h1>
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <div className="inline-flex items-center gap-2 rounded-lg bg-[#fff3f3] px-3 py-2 text-xs font-semibold text-[#e15851]">
@@ -109,15 +110,9 @@ export function FreeInfoPage() {
 
       <div>
         {posts.map((post) => (
-          <article key={post.id} className={`grid gap-4 py-12 `}>
+          <article key={post.id} className="grid gap-4 border-b border-slate-100 py-8 md:py-10">
             <div className="flex items-center gap-3">
-              <div
-                className={`size-10 rounded-lg border border-slate-200 ${
-                  post.badge === "다이아"
-                    ? "bg-[linear-gradient(140deg,#9dc9ea,#4da3d9)]"
-                    : "bg-[linear-gradient(140deg,#88c2a7,#f9c6aa)]"
-                }`}
-              />
+              <img src='default_profile.png' width={40} className="pb-1"/>
               <div className="grid gap-0.5">
                 <p className="text-[13px] font-bold leading-5 text-slate-900">{post.author}<UserTierIcon tier={post.badge} className="ml-1 inline-block h-[13px] w-3 align-[-2px]" /></p>
                 <div className="flex items-center gap-1 text-[10px] text-slate-400">
@@ -132,16 +127,19 @@ export function FreeInfoPage() {
               </div>
             </div>
 
-            <Link to={`/free-info/${post.id}`} className="text-2xl font-bold leading-tight tracking-[-0.02em] text-slate-900 hover:text-blue-700 md:text-[28px]">
+            <Link
+              to={`/free-info/${post.id}`}
+              className="text-xl font-bold leading-tight tracking-[-0.02em] text-slate-900 transition-colors hover:text-[var(--color-primary-hover)] md:text-[28px]"
+            >
               {post.title}
             </Link>
-            <p className="text-sm leading-7 text-slate-600">{post.excerpt}</p>
+            <p className="text-sm leading-6 text-slate-600 md:leading-7">{post.excerpt}</p>
 
             <div className="flex flex-wrap gap-2.5">
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-lg bg-white px-3 py-1.5 text-xs text-[#87bcf5] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
+                  className="rounded-lg bg-white px-3 py-1.5 text-xs text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
                 >
                   {tag}
                 </span>
@@ -150,11 +148,23 @@ export function FreeInfoPage() {
 
             <div className="flex flex-col gap-1 text-[11px] text-slate-400 md:flex-row md:items-center md:gap-4">
               <span>{post.date} · 자유/정보 게시판</span>
-              <div className="flex gap-3">
-                <span>♡ {post.likes}</span>
-                <span>◌ {post.comments}</span>
-                <span>◔ {post.views}</span>
-                <span>▯ {post.scraps}</span>
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                <span className="inline-flex items-center gap-1">
+                  <ThumbsUp size={13} strokeWidth={1.8} />
+                  {post.likes}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <MessageCircle size={13} strokeWidth={1.8} />
+                  {post.comments}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Eye size={13} strokeWidth={1.8} />
+                  {post.views}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Bookmark size={13} strokeWidth={1.8} />
+                  {post.scraps}
+                </span>
               </div>
             </div>
           </article>
@@ -163,3 +173,4 @@ export function FreeInfoPage() {
     </section>
   );
 }
+
