@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
 import { FreeInfoDetailPage } from "./pages/FreeInfoDetailPage";
 import { FreeInfoPage } from "./pages/FreeInfoPage";
+import { FreeInfoWritePage } from "./pages/FreeInfoWritePage";
 import { HomePage } from "./pages/HomePage";
 import { LecturePage } from "./pages/LecturePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -18,6 +19,7 @@ function AppRouter() {
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="/free-info" element={<FreeInfoPage />} />
+          <Route path="/free-info/write" element={<FreeInfoWritePage />} />
           <Route path="/free-info/:postId" element={<FreeInfoDetailPage />} />
           <Route path="/lecture" element={<LecturePage />} />
         </Route>
