@@ -1,6 +1,8 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
 import { BookOpenCheck, Code2, Megaphone, Newspaper, Search, UsersRound } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+import { getCurrentUser, ProfileRequestError } from "../api/profile";
+import type { CurrentUserResponse } from "../api/profile";
 
 const desktopNavItems = [
   { label: "자유/정보", to: "/free-info" },
@@ -21,6 +23,7 @@ const mobileDockItems = [
 export function Header() {
   const [showMobileDock, setShowMobileDock] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
+  const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -38,6 +41,46 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUser = async () => {
+      console.debug("[Header] loadUser start");
+
+      try {
+        console.debug("[Header] requesting GET /api/users/me");
+        const response = await getCurrentUser();
+        console.debug("[Header] GET /api/users/me success", response);
+        if (isMounted) {
+          console.debug("[Header] applying user to header", response.data);
+          setUser(response.data);
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
+          console.debug("[Header] GET /api/users/me unauthorized", {
+            status: error.status,
+            message: error.message,
+          });
+          setUser(null);
+          return;
+        }
+
+        console.error("[Header] GET /api/users/me failed", error);
+        setUser(null);
+      }
+    };
+
+    void loadUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const dockVisibilityClass = useMemo(() => {
@@ -84,9 +127,24 @@ export function Header() {
             >
               <Search className="size-4.5 md:size-5" strokeWidth={2} />
             </button>
-            <Link className="rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-slate-50" to="/login">
-              로그인
-            </Link>
+
+            {user ? (
+              <Link className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50" to="/profile-setup">
+                <img
+                  className="size-8 rounded-full border border-black/10 object-cover"
+                  src={user.profilePicture || "/default_profile.png"}
+                  alt="프로필 이미지"
+                />
+                <div className="hidden text-left sm:block">
+                  <p className="text-sm font-medium text-slate-800">{user.nickname || "회원"}</p>
+                  <p className="text-xs text-slate-500">프로필 설정</p>
+                </div>
+              </Link>
+            ) : (
+              <Link className="rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-slate-50" to="/login">
+                로그인
+              </Link>
+            )}
           </div>
         </div>
       </header>
