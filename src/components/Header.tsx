@@ -47,7 +47,7 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full border-b border-black/5 bg-[#fefeff]/95 px-4 backdrop-blur ${
+        className={`sticky top-0 z-40 w-full border-b border-black/5 bg-white/95 px-4 backdrop-blur ${
           isAtTop ? "" : "shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
         }`}
       >
