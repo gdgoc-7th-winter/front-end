@@ -11,7 +11,7 @@
 body {
   font-family: "Asta Sans", sans-serif;
   margin: 0;
-  background: #fefeff;
+  background: #fff;
   color: #0f172a;
   overflow-x: hidden;
 }
@@ -20,6 +20,7 @@ html,
 body,
 #root {
   min-height: 100%;
+  background-color: #fff;
 }
 
 .tiptap-editor .ProseMirror {
@@ -34,7 +35,8 @@ body,
 }
 
 .tiptap-editor .ProseMirror h1,
-.tiptap-editor .ProseMirror h2 {
+.tiptap-editor .ProseMirror h2,
+.tiptap-editor .ProseMirror h3 {
   margin: 0 0 1rem;
   color: #0f172a;
   font-weight: 700;
@@ -51,10 +53,38 @@ body,
   line-height: 1.875rem;
 }
 
+.tiptap-editor .ProseMirror h3 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
 .tiptap-editor .ProseMirror ul,
 .tiptap-editor .ProseMirror ol {
   margin: 0 0 1rem;
   padding-left: 1.25rem;
+}
+
+.tiptap-editor .ProseMirror ul ul,
+.tiptap-editor .ProseMirror ol ol,
+.tiptap-editor .ProseMirror ul ol,
+.tiptap-editor .ProseMirror ol ul {
+  margin: 0.25rem 0 0;
+}
+
+.tiptap-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.tiptap-editor .ProseMirror ol {
+  list-style: decimal;
+}
+
+.tiptap-editor .ProseMirror li {
+  margin: 0.15rem 0;
+}
+
+.tiptap-editor .ProseMirror li p {
+  margin: 0;
 }
 
 .tiptap-editor .ProseMirror blockquote {
@@ -62,6 +92,12 @@ body,
   border-left: 3px solid #cbd5e1;
   padding-left: 1rem;
   color: #64748b;
+}
+
+.tiptap-editor .ProseMirror hr {
+  margin: 1.25rem 0;
+  border: 0;
+  border-top: 1px solid #cbd5e1;
 }
 
 .tiptap-editor .ProseMirror pre {
@@ -87,4 +123,27 @@ body,
   background: transparent;
   padding: 0;
   color: inherit;
+}
+
+.tiptap-editor .ProseMirror a {
+  color: var(--color-primary-active);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tiptap-editor .ProseMirror img {
+  display: block;
+  max-width: 100%;
+  border-radius: 1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.tiptap-editor .ProseMirror figure {
+  margin: 0 0 1rem;
+}
+
+.tiptap-editor .ProseMirror figcaption {
+  margin-top: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
 }
