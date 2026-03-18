@@ -7,11 +7,14 @@
   --color-primary-active: #589BEA;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
 
 body {
   font-family: "Asta Sans", sans-serif;
   margin: 0;
-  background: #fefeff;
+  background: white;
   color: #0f172a;
   overflow-x: hidden;
 }
