@@ -8,6 +8,9 @@ import { FreeInfoPage } from "./pages/FreeInfoPage";
 import { HomePage } from "./pages/HomePage";
 import { LecturePage } from "./pages/LecturePage";
 import { LoginPage } from "./pages/LoginPage";
+import { MyAccountSettingsPage } from "./pages/MyAccountSettingsPage";
+import { MyApplyPage } from "./pages/MyApplyPage";
+import { MyPostsPage } from "./pages/MyPostsPage";
 import { ProfileSetupPage } from "./pages/ProfileSetupPage";
 import { SignupPage } from "./pages/SignupPage";
 import "./global.css";
@@ -21,6 +24,9 @@ function AppRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/profile-setup" element={<ProfileSetupPage />} />
+        <Route path="/profile-setup/posts" element={<MyPostsPage />} />
+        <Route path="/profile-setup/apply" element={<MyApplyPage />} />
+        <Route path="/profile-setup/setting-account" element={<MyAccountSettingsPage />} />
 
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
