@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { login } from "../api/auth";
+import { getCurrentUser, isProfileSetupRequiredError } from "../api/profile";
+import type { CurrentUserResponse } from "../api/profile";
 
 interface LoginFormValues {
   email: string;
@@ -12,8 +14,15 @@ interface LoginFormValues {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const dummyUser: CurrentUserResponse = {
+  nickname: "dummy",
+  profilePicture: "/default_profile.png",
+  isDummyProfile: true,
+};
+
 export function LoginPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const {
@@ -42,6 +51,22 @@ export function LoginPage() {
         email: form.email.trim(),
         password: form.password,
       });
+
+      let currentUser: CurrentUserResponse | null = null;
+
+      try {
+        const meResponse = await getCurrentUser();
+        currentUser = meResponse.data;
+      } catch (error) {
+        if (isProfileSetupRequiredError(error)) {
+          currentUser = dummyUser;
+        } else {
+          console.error("[LoginPage] GET /api/users/me after login failed", error);
+        }
+      }
+
+      queryClient.setQueryData(["current-user"], currentUser);
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
 
       setSuccessMessage(result.message || "로그인에 성공했습니다.");
       navigate("/", { replace: true });

@@ -18,12 +18,51 @@ interface RequestOptions<B> {
   headers?: HeadersInit;
 }
 
+function getCookieValue(name: string) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const encodedName = encodeURIComponent(name);
+  const cookie = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${encodedName}=`));
+
+  if (!cookie) {
+    return null;
+  }
+
+  const [, value = ""] = cookie.split("=");
+  return decodeURIComponent(value);
+}
+
+function expireCookie(name: string, path: string) {
+  document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; SameSite=Lax`;
+}
+
+export function clearAuthCookies() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  ["SESSION", "JSESSIONID", "XSRF-TOKEN"].forEach((name) => {
+    expireCookie(name, "/");
+    expireCookie(name, "/api");
+  });
+}
+
 function buildApiUrl(path: string) {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  // In development, always call the current frontend origin so Vite can
+  // intercept `/api/*` and forward it through the configured dev proxy.
+  if (import.meta.env.DEV) {
+    return new URL(normalizedPath, window.location.origin).toString();
+  }
 
   if (!API_BASE_URL) {
     return normalizedPath;
@@ -39,6 +78,7 @@ function buildApiUrl(path: string) {
 
 function createAuthHeaders(headers?: HeadersInit) {
   const nextHeaders = new Headers(headers ?? {});
+  const xsrfToken = getCookieValue("XSRF-TOKEN");
 
   if (!nextHeaders.has("Content-Type")) {
     nextHeaders.set("Content-Type", "application/json");
@@ -48,8 +88,9 @@ function createAuthHeaders(headers?: HeadersInit) {
     nextHeaders.set("Accept", "*/*");
   }
 
-  // SESSION is sent by the browser with credentials: "include".
-  // Frontend code should not mirror it into a custom header.
+  if (xsrfToken && !nextHeaders.has("X-XSRF-TOKEN")) {
+    nextHeaders.set("X-XSRF-TOKEN", xsrfToken);
+  }
 
   return nextHeaders;
 }

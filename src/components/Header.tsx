@@ -1,7 +1,21 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpenCheck, Code2, Megaphone, Newspaper, Search, UsersRound } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
-import { getCurrentUser, ProfileRequestError } from "../api/profile";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  BookOpenCheck,
+  ChevronRight,
+  CircleUserRound,
+  Code2,
+  FilePenLine,
+  LayoutGrid,
+  Megaphone,
+  Medal,
+  Newspaper,
+  Search,
+  Settings,
+  UsersRound,
+} from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { getCurrentUser, isProfileSetupRequiredError, ProfileRequestError } from "../api/profile";
 import type { CurrentUserResponse } from "../api/profile";
 
 const desktopNavItems = [
@@ -20,11 +34,31 @@ const mobileDockItems = [
   { label: "동아리/홍보", to: "/lecture", icon: Megaphone },
 ];
 
+const dummyUser: CurrentUserResponse = {
+  nickname: "dummy",
+  profilePicture: "/default_profile.png",
+  isDummyProfile: true,
+};
+
+const profileMenuItems: Array<{
+  label: string;
+  icon: typeof CircleUserRound;
+  to?: string;
+}> = [
+  { label: "프로필", icon: CircleUserRound, to: "/profile-setup" },
+  { label: "나의 업적", icon: Medal },
+  { label: "작성한 게시글", icon: FilePenLine, to: "/profile-setup/posts" },
+  { label: "지원 현황", icon: LayoutGrid, to: "/profile-setup/apply" },
+  { label: "계정 설정", icon: Settings, to: "/profile-setup/setting-account" },
+];
+
 export function Header() {
+  const navigate = useNavigate();
   const [showMobileDock, setShowMobileDock] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
-  const [user, setUser] = useState<CurrentUserResponse | null>(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const lastScrollY = useRef(0);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -43,45 +77,55 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadUser = async () => {
-      console.debug("[Header] loadUser start");
-
+  const currentUserQuery = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
       try {
-        console.debug("[Header] requesting GET /api/users/me");
         const response = await getCurrentUser();
-        console.debug("[Header] GET /api/users/me success", response);
-        if (isMounted) {
-          console.debug("[Header] applying user to header", response.data);
-          setUser(response.data);
-        }
+        return response.data;
       } catch (error) {
-        if (!isMounted) {
-          return;
+        if (isProfileSetupRequiredError(error)) {
+          return dummyUser;
         }
 
         if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
-          console.debug("[Header] GET /api/users/me unauthorized", {
-            status: error.status,
-            message: error.message,
-          });
-          setUser(null);
-          return;
+          return null;
         }
 
-        console.error("[Header] GET /api/users/me failed", error);
-        setUser(null);
+        throw error;
+      }
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const user = currentUserQuery.data ?? null;
+
+  useEffect(() => {
+    if (!isProfileMenuOpen) {
+      return;
+    }
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
       }
     };
 
-    void loadUser();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      isMounted = false;
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [isProfileMenuOpen]);
 
   const dockVisibilityClass = useMemo(() => {
     return showMobileDock ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0";
@@ -129,17 +173,78 @@ export function Header() {
             </button>
 
             {user ? (
-              <Link className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50" to="/profile-setup">
-                <img
-                  className="size-8 rounded-full border border-black/10 object-cover"
-                  src={user.profilePicture || "/default_profile.png"}
-                  alt="프로필 이미지"
-                />
-                <div className="hidden text-left sm:block">
-                  <p className="text-sm font-medium text-slate-800">{user.nickname || "회원"}</p>
-                  <p className="text-xs text-slate-500">프로필 설정</p>
-                </div>
-              </Link>
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50"
+                  type="button"
+                  onClick={() => setIsProfileMenuOpen((previous) => !previous)}
+                  aria-haspopup="menu"
+                  aria-expanded={isProfileMenuOpen}
+                >
+                  <img
+                    className="size-8 rounded-full border border-black/10 object-cover"
+                    src={user.profilePicture || "/default_profile.png"}
+                    alt="프로필 이미지"
+                  />
+                  <div className="hidden text-left sm:block">
+                    <p className="text-sm font-medium text-slate-800">{user.nickname || "회원"}</p>
+                    <p className="text-xs text-slate-500">{user.isDummyProfile ? "임시 계정" : "마이페이지"}</p>
+                  </div>
+                </button>
+
+                {isProfileMenuOpen ? (
+                  <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[236px] rounded-[24px] border border-[#e7edf5] bg-white p-4 shadow-[0_18px_48px_rgba(15,23,42,0.14)]">
+                    <button
+                      className="flex w-full items-center justify-between rounded-[18px] px-2 py-1.5 text-left transition hover:bg-[#f8fbff]"
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        navigate("/profile-setup");
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="size-10 rounded-full border border-[#e2e8f0] object-cover"
+                          src={user.profilePicture || "/default_profile.png"}
+                          alt="프로필 이미지"
+                        />
+                        <div>
+                          <p className="text-[13px] font-semibold leading-5 text-[#0f172a]">{user.nickname || "회원"}</p>
+                          <p className="mt-0.5 text-[11px] leading-4 text-[#94a3b8]">
+                            {user.department || (user.isDummyProfile ? "프로필 설정이 필요합니다." : "계정 정보")}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="size-4 text-[#0f172a]" />
+                    </button>
+
+                    <div className="mt-3 grid gap-1">
+                      {profileMenuItems.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                          <button
+                            key={item.label}
+                            className="flex w-full items-center gap-3 rounded-[18px] px-2 py-2.5 text-left text-[13px] text-[#52637b] transition hover:bg-[#f8fbff]"
+                            type="button"
+                            onClick={() => {
+                              setIsProfileMenuOpen(false);
+                              if (item.to) {
+                                navigate(item.to);
+                              }
+                            }}
+                          >
+                            <Icon className="size-4.5 text-[#607089]" strokeWidth={1.9} />
+                            <span>{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : currentUserQuery.isPending ? (
+              <div className="h-8 w-[96px] rounded-xl bg-[#f8fafc]" />
             ) : (
               <Link className="rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-slate-50" to="/login">
                 로그인
