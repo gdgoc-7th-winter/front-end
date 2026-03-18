@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent, RefObject } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { sendEmailVerification, signUp, verifyEmailCode } from "../api/auth";
@@ -37,6 +37,27 @@ const STEP_TO_SCREEN: Record<number, SignupScreen> = {
   3: 4,
   4: 5,
 };
+
+function getPasswordCategoryCount(value: string) {
+  return [/[A-Za-z]/, /\d/, /[^A-Za-z0-9\s]/].filter((pattern) => pattern.test(value)).length;
+}
+
+function isPasswordLengthValid(value: string) {
+  return /^\S{8,32}$/.test(value);
+}
+
+function hasRepeatedPasswordCharacter(value: string) {
+  return /(.)\1\1/.test(value);
+}
+
+function PasswordRequirement({ label, isValid }: { label: string; isValid: boolean }) {
+  return (
+    <div className={`flex items-center gap-3 text-sm leading-6 ${isValid ? "text-[#5f7188]" : "text-[#9ca9bb]"}`}>
+      <Check className="size-4 shrink-0" strokeWidth={2.4} />
+      <span>{label}</span>
+    </div>
+  );
+}
 
 const SCREEN_DESCRIPTION: Record<Exclude<SignupScreen, 5>, string> = {
   1: "HUFS 학교 이메일 인증을 통해 가입이 가능해요",
@@ -202,6 +223,7 @@ export function SignupPage() {
 
   const emailLocalPart = watch("emailLocalPart");
   const passwordValue = watch("password");
+  const confirmPasswordValue = watch("confirmPassword");
   const nicknameValue = watch("nickname");
   const agreeAll = watch("agreeAll");
   const agreeTerms = watch("agreeTerms");
@@ -254,6 +276,12 @@ export function SignupPage() {
   });
 
   const verificationCode = authCodeDigits.join("");
+  const passwordRequirements = [
+    { label: "영문/숫자/특수문자 중, 2가지 이상 포함", isValid: getPasswordCategoryCount(passwordValue) >= 2 },
+    { label: "8자 이상 32자 이하 입력 (공백 제외)", isValid: isPasswordLengthValid(passwordValue) },
+    { label: "연속 3자 이상 동일한 문자/숫자 제외", isValid: !hasRepeatedPasswordCharacter(passwordValue) },
+  ];
+  const isConfirmPasswordMatched = confirmPasswordValue.length > 0 && confirmPasswordValue === passwordValue;
   const isSendingVerification = sendVerificationMutation.isPending;
   const isVerifyingCode = verifyCodeMutation.isPending;
   const isSigningUp = signUpMutation.isPending;
@@ -534,9 +562,10 @@ export function SignupPage() {
                 type={isPasswordVisible ? "text" : "password"}
                 {...register("password", {
                   required: "비밀번호를 입력해주세요.",
-                  minLength: {
-                    value: 8,
-                    message: "비밀번호는 8자 이상이어야 합니다.",
+                  validate: {
+                    combination: (value) => getPasswordCategoryCount(value) >= 2 || "영문, 숫자, 특수문자 중 2가지 이상을 포함해주세요.",
+                    length: (value) => isPasswordLengthValid(value) || "비밀번호는 공백 없이 8자 이상 32자 이하로 입력해주세요.",
+                    repeated: (value) => !hasRepeatedPasswordCharacter(value) || "동일한 문자나 숫자를 3자 이상 연속으로 사용할 수 없습니다.",
                   },
                 })}
               />
@@ -548,6 +577,12 @@ export function SignupPage() {
                 {isPasswordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </label>
+
+            <div className="grid gap-1">
+              {passwordRequirements.map((requirement) => (
+                <PasswordRequirement key={requirement.label} label={requirement.label} isValid={requirement.isValid} />
+              ))}
+            </div>
 
             <label className="relative">
               <input
@@ -567,6 +602,8 @@ export function SignupPage() {
                 {isConfirmPasswordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </label>
+
+            <PasswordRequirement label="확인을 위해 비밀번호를 다시 입력해 주세요." isValid={isConfirmPasswordMatched} />
           </div>
 
           <button
