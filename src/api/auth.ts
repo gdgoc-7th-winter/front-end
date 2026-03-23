@@ -1,3 +1,4 @@
+
 import type {
   EmailVerificationRequest,
   LoginRequest,
@@ -11,17 +12,21 @@ async function requestAuth<T, B>(path: string, body: B) {
 }
 
 export function signUp(payload: SignUpRequest) {
-  return requestAuth<string, SignUpRequest>("/api/users/signup", payload);
+  return requestAuth<string, SignUpRequest>("/api/v1/users/signup", payload);
 }
 
 export function login(payload: LoginRequest) {
-  return requestAuth<string, LoginRequest>("/api/users/login", payload);
+  return requestAuth<string, LoginRequest>("/api/v1/users/login", payload);
+}
+
+export function logout() {
+  return requestAuth<string, Record<string, never>>("/api/v1/users/logout", {});
 }
 
 export function sendEmailVerification(payload: EmailVerificationRequest) {
-  return requestAuth<string, EmailVerificationRequest>("/api/auth/email-verification", payload);
+  return requestAuth<string, EmailVerificationRequest>("/api/v1/auth/email-verification", payload);
 }
 
 export function verifyEmailCode(payload: VerifyEmailCodeRequest) {
-  return requestAuth<string, VerifyEmailCodeRequest>("/api/auth/verify-code", payload);
+  return requestAuth<string, VerifyEmailCodeRequest>("/api/v1/auth/verify-code", payload);
 }

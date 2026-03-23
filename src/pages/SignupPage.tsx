@@ -1,5 +1,6 @@
+
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, RefObject } from "react";
+import type { KeyboardEvent, RefObject } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Check, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -23,7 +24,6 @@ const EMAIL_DOMAIN = "@hufs.ac.kr";
 const AUTH_CODE_LENGTH = 6;
 const AUTH_CODE_INPUTS = Array.from({ length: AUTH_CODE_LENGTH }, (_, index) => index);
 const STEP_TITLES = ["본인인증", "정보입력", "약관동의", "가입완료"] as const;
-const DEFAULT_PROFILE_IMAGE = "/default_profile.png";
 const SCREEN_TO_STEP: Record<SignupScreen, number> = {
   1: 1,
   2: 2,
@@ -50,10 +50,15 @@ function hasRepeatedPasswordCharacter(value: string) {
   return /(.)\1\1/.test(value);
 }
 
-function PasswordRequirement({ label, isValid }: { label: string; isValid: boolean }) {
+type PasswordRequirementStatus = "default" | "success" | "error";
+
+function PasswordRequirement({ label, status }: { label: string; status: PasswordRequirementStatus }) {
+  const statusClassName =
+    status === "success" ? "text-[#34a853]" : status === "error" ? "text-[#ea4335]" : "text-[#94a3b8]";
+
   return (
-    <div className={`flex items-center gap-3 text-sm leading-6 ${isValid ? "text-[#5f7188]" : "text-[#9ca9bb]"}`}>
-      <Check className="size-4 shrink-0" strokeWidth={2.4} />
+    <div className={`flex items-start gap-1 text-sm font-semibold leading-6 ${statusClassName}`}>
+      <Check className="mt-[1px] size-5 shrink-0" strokeWidth={2.4} />
       <span>{label}</span>
     </div>
   );
@@ -197,9 +202,7 @@ export function SignupPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [nicknameCheckedValue, setNicknameCheckedValue] = useState("");
-  const [profilePreviewUrl, setProfilePreviewUrl] = useState<string>(DEFAULT_PROFILE_IMAGE);
   const authCodeRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const profileFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     register,
@@ -257,14 +260,6 @@ export function SignupPage() {
     }
   }, [nicknameCheckedValue, nicknameValue]);
 
-  useEffect(() => {
-    return () => {
-      if (profilePreviewUrl && profilePreviewUrl !== DEFAULT_PROFILE_IMAGE) {
-        URL.revokeObjectURL(profilePreviewUrl);
-      }
-    };
-  }, [profilePreviewUrl]);
-
   const sendVerificationMutation = useMutation({
     mutationFn: sendEmailVerification,
   });
@@ -281,7 +276,10 @@ export function SignupPage() {
     { label: "8자 이상 32자 이하 입력 (공백 제외)", isValid: isPasswordLengthValid(passwordValue) },
     { label: "연속 3자 이상 동일한 문자/숫자 제외", isValid: !hasRepeatedPasswordCharacter(passwordValue) },
   ];
+  const hasEnteredPassword = passwordValue.length > 0;
   const isConfirmPasswordMatched = confirmPasswordValue.length > 0 && confirmPasswordValue === passwordValue;
+  const confirmPasswordRequirementStatus: PasswordRequirementStatus =
+    confirmPasswordValue.length === 0 ? "default" : isConfirmPasswordMatched ? "success" : "error";
   const isSendingVerification = sendVerificationMutation.isPending;
   const isVerifyingCode = verifyCodeMutation.isPending;
   const isSigningUp = signUpMutation.isPending;
@@ -327,20 +325,6 @@ export function SignupPage() {
     if (event.key === "Backspace" && !authCodeDigits[index] && index > 0) {
       authCodeRefs.current[index - 1]?.focus();
     }
-  };
-
-  const onUploadProfileImage = (event: ChangeEvent<HTMLInputElement>) => {
-    const nextFile = event.target.files?.[0];
-    if (!nextFile) {
-      return;
-    }
-
-    if (profilePreviewUrl !== DEFAULT_PROFILE_IMAGE) {
-      URL.revokeObjectURL(profilePreviewUrl);
-    }
-
-    const objectUrl = URL.createObjectURL(nextFile);
-    setProfilePreviewUrl(objectUrl);
   };
 
   const onClickSendVerification = async () => {
@@ -451,6 +435,7 @@ export function SignupPage() {
         await signUpMutation.mutateAsync({
           email: schoolEmail,
           password: passwordValue,
+          nickname: nicknameValue.trim(),
         });
         setSuccessMessage("회원가입이 완료되었습니다.");
         setCurrentScreen(5);
@@ -483,10 +468,6 @@ export function SignupPage() {
     resetVerificationState();
     setCurrentScreen(1);
     setNicknameCheckedValue("");
-    if (profilePreviewUrl !== DEFAULT_PROFILE_IMAGE) {
-      URL.revokeObjectURL(profilePreviewUrl);
-    }
-    setProfilePreviewUrl(DEFAULT_PROFILE_IMAGE);
   };
 
   const renderFormContent = () => {
@@ -580,7 +561,11 @@ export function SignupPage() {
 
             <div className="grid gap-1">
               {passwordRequirements.map((requirement) => (
-                <PasswordRequirement key={requirement.label} label={requirement.label} isValid={requirement.isValid} />
+                <PasswordRequirement
+                  key={requirement.label}
+                  label={requirement.label}
+                  status={hasEnteredPassword ? (requirement.isValid ? "success" : "error") : "default"}
+                />
               ))}
             </div>
 
@@ -603,7 +588,7 @@ export function SignupPage() {
               </button>
             </label>
 
-            <PasswordRequirement label="확인을 위해 비밀번호를 다시 입력해 주세요." isValid={isConfirmPasswordMatched} />
+            <PasswordRequirement label="확인을 위해 비밀번호를 다시 입력해 주세요." status={confirmPasswordRequirementStatus} />
           </div>
 
           <button
@@ -620,27 +605,7 @@ export function SignupPage() {
     if (currentScreen === 3) {
       return (
         <>
-          <div className="flex flex-col items-center">
-            <button
-              className="flex h-[86px] w-[86px] items-center justify-center overflow-hidden rounded-full bg-[#1d2740] text-white"
-              type="button"
-              onClick={() => profileFileInputRef.current?.click()}
-            >
-              <img alt="프로필 미리보기" className="h-full w-full object-cover" src={profilePreviewUrl} />
-            </button>
-            <button className="mt-4 text-sm text-[#7f90a4]" type="button" onClick={() => profileFileInputRef.current?.click()}>
-              프로필 사진
-            </button>
-            <input
-              ref={profileFileInputRef}
-              className="hidden"
-              type="file"
-              accept="image/*"
-              onChange={onUploadProfileImage}
-            />
-          </div>
-
-          <div className="mt-8 flex gap-[5px]">
+          <div className="flex gap-[5px]">
             <input
               className="h-12 flex-1 rounded-xl border border-[#a8bfd9] bg-transparent px-4 text-sm text-[#23324c] outline-none placeholder:text-[#9ca9bb]"
               placeholder="닉네임"

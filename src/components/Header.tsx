@@ -1,20 +1,26 @@
+﻿
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Bell,
   BookOpenCheck,
   ChevronRight,
   CircleUserRound,
   Code2,
   FilePenLine,
   LayoutGrid,
+  LogOut,
   Megaphone,
   Medal,
+  MessageSquareMore ,
   Newspaper,
   Search,
   Settings,
   UsersRound,
 } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { logout } from "../api/auth";
+import { clearAuthCookies } from "../api/http";
 import { getCurrentUser, isProfileSetupRequiredError, ProfileRequestError } from "../api/profile";
 import type { CurrentUserResponse } from "../api/profile";
 
@@ -54,6 +60,7 @@ const profileMenuItems: Array<{
 
 export function Header() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showMobileDock, setShowMobileDock] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -100,6 +107,15 @@ export function Header() {
   });
 
   const user = currentUserQuery.data ?? null;
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSettled: async () => {
+      clearAuthCookies();
+      setIsProfileMenuOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      navigate("/login", { replace: true });
+    },
+  });
 
   useEffect(() => {
     if (!isProfileMenuOpen) {
@@ -163,33 +179,46 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-5">
             <button
-              className="grid size-9 place-items-center rounded-xl border border-black/10 text-slate-900 md:size-8 md:rounded-none md:border-0"
+              className="grid size-9 place-items-center rounded-full text-[#0f172a] transition hover:bg-[#f8fafc] md:size-10"
               type="button"
               aria-label="검색"
             >
-              <Search className="size-4.5 md:size-5" strokeWidth={2} />
+              <Search className="size-4.5 md:size-5" strokeWidth={2.2} />
+            </button>
+
+            <button
+              className="grid size-9 place-items-center rounded-full text-[#0f172a] transition hover:bg-[#f8fafc] md:size-10"
+              type="button"
+              aria-label="알림"
+            >
+              <Bell className="size-4.5 md:size-5" strokeWidth={2.1} />
+            </button>
+
+            <button
+              className="grid size-9 place-items-center rounded-full text-[#0f172a] transition hover:bg-[#f8fafc] md:size-10"
+              type="button"
+              aria-label="메시지"
+            >
+              <MessageSquareMore  className="size-4.5 md:size-5" strokeWidth={2.1} />
             </button>
 
             {user ? (
               <div className="relative" ref={profileMenuRef}>
                 <button
-                  className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-50"
+                  className="grid size-10 place-items-center rounded-full transition hover:bg-[#f8fafc]"
                   type="button"
                   onClick={() => setIsProfileMenuOpen((previous) => !previous)}
                   aria-haspopup="menu"
                   aria-expanded={isProfileMenuOpen}
+                  aria-label="프로필 메뉴"
                 >
                   <img
                     className="size-8 rounded-full border border-black/10 object-cover"
                     src={user.profilePicture || "/default_profile.png"}
                     alt="프로필 이미지"
                   />
-                  <div className="hidden text-left sm:block">
-                    <p className="text-sm font-medium text-slate-800">{user.nickname || "회원"}</p>
-                    <p className="text-xs text-slate-500">{user.isDummyProfile ? "임시 계정" : "마이페이지"}</p>
-                  </div>
                 </button>
 
                 {isProfileMenuOpen ? (
@@ -239,15 +268,31 @@ export function Header() {
                           </button>
                         );
                       })}
+
+                      <button
+                        className="mt-1 flex w-full items-center gap-3 rounded-[18px] px-2 py-2.5 text-left text-[13px] text-[#52637b] transition hover:bg-[#f8fbff] disabled:opacity-60"
+                        type="button"
+                        disabled={logoutMutation.isPending}
+                        onClick={() => {
+                          logoutMutation.mutate();
+                        }}
+                      >
+                        <LogOut className="size-4.5 text-[#607089]" strokeWidth={1.9} />
+                        <span>{logoutMutation.isPending ? "로그아웃 중..." : "로그아웃"}</span>
+                      </button>
                     </div>
                   </div>
                 ) : null}
               </div>
             ) : currentUserQuery.isPending ? (
-              <div className="h-8 w-[96px] rounded-xl bg-[#f8fafc]" />
+              <div className="size-10 rounded-full bg-[#f8fafc]" />
             ) : (
-              <Link className="rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-slate-50" to="/login">
-                로그인
+              <Link
+                className="grid size-10 place-items-center rounded-full transition hover:bg-[#f8fafc]"
+                to="/login"
+                aria-label="로그인"
+              >
+                <CircleUserRound className="size-5 text-[#0f172a]" strokeWidth={2} />
               </Link>
             )}
           </div>
