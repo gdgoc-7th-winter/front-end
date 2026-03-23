@@ -1,8 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bookmark, Ellipsis, Eye, MessageCircle, ThumbsUp } from "lucide-react";
+import { Bookmark, Eye, Ellipsis, MessageCircle, ThumbsUp } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { getPostComments, getPostDetail } from "../api/posts";
 import { UserTierIcon } from "../components/UserTierIcon";
+
+function formatCount(value: number) {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1).replace(/\.0$/, "")}k`;
+  }
+
+  return value.toLocaleString("ko-KR");
+}
 
 function formatPostDate(value: string) {
   const parsedDate = new Date(value);
@@ -21,14 +29,6 @@ function formatPostDate(value: string) {
     .replace(/\.$/, "");
 }
 
-function formatCount(value: number) {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1).replace(/\.0$/, "")}k`;
-  }
-
-  return value.toLocaleString("ko-KR");
-}
-
 function formatCommentDate(value: string) {
   const parsedDate = new Date(value);
 
@@ -44,7 +44,7 @@ function formatCommentDate(value: string) {
   }).format(parsedDate);
 }
 
-export function FreeInfoDetailPage() {
+export function LectureDetailPage() {
   const { postId } = useParams();
   const numericPostId = Number(postId);
   const postDetailQuery = useQuery({
@@ -91,7 +91,7 @@ export function FreeInfoDetailPage() {
         <>
           <article className="w-full overflow-hidden rounded-[32px] bg-white">
             <header className="border-b border-[#f8fafc] px-4 py-8 md:px-10 md:py-9">
-              <p className="text-xs leading-4 text-[#90a1b9]">{formatPostDate(post.createdAt)} · 자유/정보 게시판</p>
+              <p className="text-xs leading-4 text-[#90a1b9]">{formatPostDate(post.createdAt)} · 강의/수업 게시판</p>
               <h1 className="mt-4 text-[28px] font-extrabold leading-[1.32] tracking-[-0.03em] text-[#0f172b]">
                 {post.title}
               </h1>
@@ -173,7 +173,7 @@ export function FreeInfoDetailPage() {
                   <Bookmark size={14} strokeWidth={2} />
                   {formatCount(post.scrapCount ?? 0)}
                 </span>
-                <Link className="inline-flex items-center gap-1 text-[#94a3b8] hover:text-[#64748b]" to="/free-info">
+                <Link className="inline-flex items-center gap-1 text-[#94a3b8] hover:text-[#64748b]" to="/lecture">
                   <span>목록가기</span>
                 </Link>
               </div>

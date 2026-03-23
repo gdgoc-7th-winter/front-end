@@ -111,7 +111,7 @@ function createDefaultHeaders(headers?: HeadersInit) {
 
 async function executeRequest<T, B>(
   path: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH",
   shouldIncludeCookies: boolean,
   options?: RequestOptions<B>,
 ): Promise<CommonResponse<T>> {
@@ -158,6 +158,13 @@ export function getWithCookies<T>(path: string, options?: Omit<RequestOptions<ne
 
 export function postWithCookies<T, B>(path: string, body: B, options?: Omit<RequestOptions<B>, "body">) {
   return executeRequest<T, B>(path, "POST", true, {
+    ...options,
+    body,
+  });
+}
+
+export function patchWithCookies<T, B>(path: string, body: B, options?: Omit<RequestOptions<B>, "body">) {
+  return executeRequest<T, B>(path, "PATCH", true, {
     ...options,
     body,
   });
