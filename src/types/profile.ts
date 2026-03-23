@@ -4,23 +4,22 @@ export type ProfileTrack = "BACKEND" | "FRONTEND" | "AI" | "DESIGN";
 
 export type ProfileTechStack =
   | "JAVA"
-  | "SPRING"
-  | "JAVASCRIPT"
-  | "TYPESCRIPT"
+  | "SPRING_BOOT"
   | "REACT"
-  | "NODE"
-  | "PYTHON";
-
-export type ProfileInterest = "STUDY" | "PROJECT" | "NETWORKING" | "CONTEST";
+  | "PYTHON"
+  | "DJANGO"
+  | "MYSQL"
+  | "AWS"
+  | "DOCKER";
 
 export interface ProfileSetupRequest {
   nickname: string;
   studentId: string;
-  department: string;
+  departmentId: number;
   profilePicture: string;
-  track: ProfileTrack;
-  techStacks: ProfileTechStack[];
-  interests: ProfileInterest[];
+  trackNames: ProfileTrack[];
+  techStackNames: ProfileTechStack[];
+  introduction: string;
 }
 
 export type ProfileSetupResponse = CommonResponse<string>;

@@ -1,6 +1,10 @@
+
 import type { ReactNode } from "react";
-import { CircleUserRound, LayoutGrid, PenSquare, Settings, Trophy } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CircleUserRound, LayoutGrid, LogOut, PenSquare, Settings, Trophy } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "../api/auth";
+import { clearAuthCookies } from "../api/http";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
@@ -26,6 +30,17 @@ export function MyPageShell({
   activeSection: MyPageSection;
   children: ReactNode;
 }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSettled: async () => {
+      clearAuthCookies();
+      await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      navigate("/login", { replace: true });
+    },
+  });
+
   return (
     <div className="min-h-screen bg-[#fefeff]">
       <Header />
@@ -53,6 +68,18 @@ export function MyPageShell({
                   </NavLink>
                 );
               })}
+
+              <button
+                className="flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-[#475569] disabled:opacity-60"
+                type="button"
+                disabled={logoutMutation.isPending}
+                onClick={() => {
+                  logoutMutation.mutate();
+                }}
+              >
+                <LogOut className="size-[18px]" strokeWidth={1.8} />
+                <span>{logoutMutation.isPending ? "로그아웃 중..." : "로그아웃"}</span>
+              </button>
             </div>
           </aside>
 
