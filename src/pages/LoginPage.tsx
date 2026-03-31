@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { login } from "../api/auth";
-import { getCurrentUser, isProfileSetupRequiredError } from "../api/profile";
+import { login, startSocialLogin } from "../api/auth";
+import type { SocialAuthProvider } from "../api/auth";
+import { getCurrentUser } from "../api/profile";
 import type { CurrentUserResponse } from "../api/profile";
 
 interface LoginFormValues {
@@ -14,17 +15,19 @@ interface LoginFormValues {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const dummyUser: CurrentUserResponse = {
-  nickname: "dummy",
-  profilePicture: "/default_profile.png",
-  isDummyProfile: true,
-};
+const socialLoginButtons = [
+  { provider: "GitHub", providerKey: "github", iconSrc: "/social/github.png" },
+  { provider: "Google", providerKey: "google", iconSrc: "/social/google.png" },
+  { provider: "Kakao", providerKey: "kakao", iconSrc: "/social/kakao.png" },
+  { provider: "Naver", providerKey: "naver", iconSrc: "/social/naver.png" },
+] as const;
 
 export function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [pendingSocialProvider, setPendingSocialProvider] = useState<SocialAuthProvider | null>(null);
   const {
     register,
     handleSubmit,
@@ -58,11 +61,7 @@ export function LoginPage() {
         const meResponse = await getCurrentUser();
         currentUser = meResponse.data;
       } catch (error) {
-        if (isProfileSetupRequiredError(error)) {
-          currentUser = dummyUser;
-        } else {
-          console.error("[LoginPage] GET /api/users/me after login failed", error);
-        }
+        console.error("[LoginPage] GET /api/v1/me/profile after login failed", error);
       }
 
       queryClient.setQueryData(["current-user"], currentUser);
@@ -78,6 +77,13 @@ export function LoginPage() {
 
   const validationMessage = errors.email?.message || errors.password?.message;
 
+  const handleSocialLogin = (provider: SocialAuthProvider) => {
+    setPendingSocialProvider(provider);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    startSocialLogin(provider);
+  };
+
   return (
     <section className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-[#f7faff] px-4 py-10">
       <div className="w-full max-w-[360px]">
@@ -85,18 +91,18 @@ export function LoginPage() {
 
         <div className="grid gap-4">
           <div className="grid grid-cols-4 gap-3">
-            <button className="h-10 rounded bg-[#2c2c2c] text-white" type="button" aria-label="GitHub 로그인">
-              GH
-            </button>
-            <button className="h-10 rounded border border-[#ededed] bg-[#f5f5f5]" type="button" aria-label="Google 로그인">
-              G
-            </button>
-            <button className="h-10 rounded bg-[#fee500] text-[#191919]" type="button" aria-label="Kakao 로그인">
-              K
-            </button>
-            <button className="h-10 rounded bg-[#03c75a] text-white" type="button" aria-label="Naver 로그인">
-              N
-            </button>
+            {socialLoginButtons.map(({ provider, providerKey, iconSrc }) => (
+              <button
+                key={provider}
+                className="flex h-10 items-center justify-center overflow-hidden rounded-md transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary-main)]"
+                type="button"
+                aria-label={`${provider} 로그인`}
+                disabled={isLoggingIn || pendingSocialProvider !== null}
+                onClick={() => handleSocialLogin(providerKey)}
+              >
+                <img className="h-full w-full object-cover" src={iconSrc} alt={`${provider} 로그인`} />
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center gap-4 text-[#94a3b8]">
@@ -133,7 +139,7 @@ export function LoginPage() {
             </div>
 
             <button
-              className="h-12 rounded-xl bg-[var(--color-primary-main)] text-base font-medium text-[#f7faff] transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] disabled:cursor-not-allowed disabled:opacity-70"
+              className="h-12 rounded-xl bg-[var(--color-primary-main)] text-base font-medium text-[#f7faff] transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)]"
               type="submit"
               disabled={isLoggingIn}
             >
@@ -161,9 +167,9 @@ export function LoginPage() {
           {successMessage ? <p className="text-sm text-green-600">{successMessage}</p> : null}
         </div>
 
-        <div className="mt-10 flex items-center justify-center gap-10 text-base text-[#475569]">
+        <div className="mt-10 flex items-center justify-center gap-15 text-base text-[#475569]">
           <span>계정이 없으신가요?</span>
-          <Link className="underline" to="/signup">
+          <Link className="underline underline-offset-2" to="/signup">
             회원가입 하기
           </Link>
         </div>
@@ -176,11 +182,6 @@ export function LoginPage() {
           <button type="button">문의하기</button>
         </div>
 
-        <div className="mt-8 text-center">
-          <Link className="text-sm text-[#475569] underline-offset-2 hover:underline" to="/">
-            홈으로 돌아가기
-          </Link>
-        </div>
       </div>
     </section>
   );

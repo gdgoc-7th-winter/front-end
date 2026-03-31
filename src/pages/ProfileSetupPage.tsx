@@ -4,10 +4,12 @@ import type { ChangeEvent, ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { Check, Crown, Eye, EyeOff, Info, Search, X } from "lucide-react";
+import { changePassword, connectSocialLogin } from "../api/auth";
+import type { SocialAuthProvider } from "../api/auth";
 import { searchDepartmentNames } from "../api/departments";
 import { uploadProfileImage } from "../api/files";
 import { MyPageShell } from "../components/MyPageShell";
-import { getCurrentUser, isProfileSetupRequiredError, ProfileRequestError, submitProfileSetup, updateMyProfile } from "../api/profile";
+import { getCurrentUser, ProfileRequestError, submitProfileSetup, updateMyProfile } from "../api/profile";
 import type { CurrentUserResponse } from "../api/profile";
 import type { ProfileSetupRequest, ProfileTechStack, ProfileTrack } from "../types/profile";
 
@@ -21,15 +23,6 @@ const trackOptions: Array<{ label: string; value: ProfileTrack }> = [
 ];
 
 const techStackOptions: ProfileTechStack[] = ["JAVA", "SPRING_BOOT", "REACT", "PYTHON", "DJANGO", "MYSQL", "AWS", "DOCKER"];
-const dummyProfile: CurrentUserResponse = {
-  nickname: "dummy",
-  profilePicture: DEFAULT_PROFILE_IMAGE,
-  track: "BACKEND",
-  techStacks: [],
-  introduction: "",
-  isDummyProfile: true,
-};
-
 interface ProfileFormValues {
   nickname: string;
   studentId: string;
@@ -180,7 +173,7 @@ function TrackChip({
 
       {onRemove ? (
         <button
-          className={`flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-[15px] font-semibold shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)] ${
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[15px] font-semibold shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)] ${
             isPrimary ? "bg-[#d8dde4] text-[#44566c]" : "bg-[#e6eaef] text-[#5b6b80]"
           }`}
           type="button"
@@ -191,7 +184,7 @@ function TrackChip({
         </button>
       ) : (
         <span
-          className={`inline-flex rounded-[14px] px-5 py-2.5 text-[15px] font-semibold shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)] ${
+          className={`inline-flex rounded-lg px-4 py-2 text-[15px] font-semibold shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)] ${
             isPrimary ? "bg-[#d8dde4] text-[#44566c]" : "bg-[#e6eaef] text-[#5b6b80]"
           }`}
         >
@@ -203,42 +196,36 @@ function TrackChip({
 }
 
 function SocialLoginRow({
-  badge,
+  provider,
+  iconSrc,
   label,
+  isConnected = false,
   actionLabel,
-  actionVariant = "outline",
+  onAction,
+  disabled = false,
 }: {
-  badge: string;
+  provider: string;
+  iconSrc: string;
   label: string;
+  isConnected?: boolean;
   actionLabel: string;
-  actionVariant?: "outline" | "primary";
+  onAction: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <div
-          className={`grid h-9 min-w-12 place-items-center rounded text-sm font-semibold ${
-            badge === "GH"
-              ? "bg-[#2c2c2c] text-white"
-              : badge === "G"
-                ? "border border-[#ededed] bg-[#f5f5f5] text-[#ea4335]"
-                : badge === "K"
-                  ? "bg-[#fee500] text-[#191919]"
-                  : "bg-[#03c75a] text-white"
-          }`}
-        >
-          {badge}
+        <div className="flex h-[36px] w-[68px] items-center justify-center rounded-[4px]">
+          <img className="h-full w-full object-contain" src={iconSrc} alt={`${provider} 로그인`} />
         </div>
-        <span className={`text-[15px] leading-6 ${label === "연동되지 않음" ? "text-[#94a3b8]" : "text-[#1e293b]"}`}>{label}</span>
+        <span className={`text-[15px] leading-6 ${isConnected ? "text-[#1e293b]" : "text-[#94a3b8]"}`}>{label}</span>
       </div>
 
       <button
-        className={`rounded border px-4 py-1.5 text-sm ${
-          actionVariant === "primary"
-            ? "border-[var(--color-primary-main)] bg-[var(--color-primary-main)] text-[#f7faff]"
-            : "border-[#dee2e6] bg-white text-[#1e293b]"
-        }`}
+        className="min-w-20 rounded-[4px] border border-[var(--color-primary-main)] bg-[var(--color-primary-main)] px-4 py-1.5 text-sm font-medium text-[#f7faff] transition-colors hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] disabled:cursor-not-allowed disabled:border-[var(--color-primary-main)] disabled:bg-[var(--color-primary-main)] disabled:opacity-70"
         type="button"
+        disabled={disabled}
+        onClick={onAction}
       >
         {actionLabel}
       </button>
@@ -278,7 +265,7 @@ function TechStackModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.42)] px-4 py-6">
-      <div className="flex max-h-[min(760px,calc(100vh-48px))] w-full max-w-[860px] flex-col overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+      <div className="flex max-h-[min(760px,calc(100vh-48px))] w-full max-w-[860px] flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
         <div className="flex items-center justify-between border-b border-[#e9eef5] px-8 py-6">
           <h3 className="text-[20px] font-semibold text-[#13304f]">주요 기술</h3>
           <button className="rounded-full p-2 text-[#94a3b8] transition hover:bg-[#f8fafc]" type="button" onClick={onClose}>
@@ -293,7 +280,7 @@ function TechStackModal({
             {selectedStacks.map((stack) => (
               <button
                 key={stack}
-                className="rounded-[16px] bg-[#506987] px-6 py-4 text-[16px] font-medium text-white"
+                className="rounded-lg bg-[#506987] px-5 py-3 text-[16px] font-medium text-white"
                 type="button"
                 onClick={() => onToggleStack(stack)}
               >
@@ -305,14 +292,14 @@ function TechStackModal({
           <div className="mt-12">
             <div className="text-[16px] font-semibold text-[#111827]">그 밖의 기술 등록</div>
             <input
-              className="mt-5 h-16 w-full rounded-[18px] border-[3px] border-[#111111] px-6 text-[22px] text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
+              className="mt-5 h-14 w-full rounded-lg border-[3px] border-[#111111] px-5 text-[20px] text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
               type="text"
               placeholder="기술 스택을 검색해 주세요."
               value={searchValue}
               onChange={(event) => onSearchChange(event.target.value)}
             />
 
-            <div className="mt-4 max-h-[360px] overflow-y-auto rounded-[20px] border border-[#eef2f6] bg-white">
+            <div className="mt-4 max-h-[360px] overflow-y-auto rounded-lg border border-[#eef2f6] bg-white">
               {filteredStacks.length ? (
                 filteredStacks.map((stack) => (
                   <button
@@ -361,7 +348,7 @@ function TrackModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.42)] px-4 py-6">
-      <div className="flex max-h-[min(760px,calc(100vh-48px))] w-full max-w-[720px] flex-col overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+      <div className="flex max-h-[min(760px,calc(100vh-48px))] w-full max-w-[720px] flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
         <div className="flex items-center justify-between border-b border-[#e9eef5] px-8 py-6">
           <h3 className="text-[20px] font-semibold text-[#13304f]">트랙 선택</h3>
           <button className="rounded-full p-2 text-[#94a3b8] transition hover:bg-[#f8fafc]" type="button" onClick={onClose}>
@@ -377,7 +364,7 @@ function TrackModal({
               selectedTracks.map((track) => (
                 <button
                   key={track}
-                  className="flex items-center gap-2 rounded-[16px] bg-[#506987] px-6 py-4 text-[16px] font-medium text-white"
+                  className="flex items-center gap-2 rounded-lg bg-[#506987] px-5 py-3 text-[16px] font-medium text-white"
                   type="button"
                   onClick={() => onToggleTrack(track)}
                 >
@@ -393,14 +380,14 @@ function TrackModal({
           <div className="mt-12">
             <div className="text-[16px] font-semibold text-[#111827]">다른 트랙 선택</div>
             <input
-              className="mt-5 h-16 w-full rounded-[18px] border-[3px] border-[#111111] px-6 text-[22px] text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
+              className="mt-5 h-14 w-full rounded-lg border-[3px] border-[#111111] px-5 text-[20px] text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
               type="text"
               placeholder="트랙을 검색해 주세요."
               value={searchValue}
               onChange={(event) => onSearchChange(event.target.value)}
             />
 
-            <div className="mt-4 max-h-[360px] overflow-y-auto rounded-[20px] border border-[#eef2f6] bg-white">
+            <div className="mt-4 max-h-[360px] overflow-y-auto rounded-lg border border-[#eef2f6] bg-white">
               {filteredTracks.length ? (
                 filteredTracks.map((track) => (
                   <button
@@ -445,6 +432,7 @@ export function ProfileSetupPage() {
   const [isConfirmNewPasswordVisible, setIsConfirmNewPasswordVisible] = useState(false);
   const [isDepartmentInputFocused, setIsDepartmentInputFocused] = useState(false);
   const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
+  const [pendingSocialProvider, setPendingSocialProvider] = useState<SocialAuthProvider | null>(null);
   const [departmentSearchKeyword, setDepartmentSearchKeyword] = useState("");
   const {
     control,
@@ -481,10 +469,6 @@ export function ProfileSetupPage() {
         const response = await getCurrentUser();
         return response.data;
       } catch (error) {
-        if (isProfileSetupRequiredError(error)) {
-          return dummyProfile;
-        }
-
         if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
           return null;
         }
@@ -514,12 +498,16 @@ export function ProfileSetupPage() {
         studentId: variables.studentId,
         departmentId: variables.departmentId,
         department: watchedDepartment.trim(),
+        departmentName: watchedDepartment.trim(),
+        profileImage: variables.profilePicture,
         profilePicture: variables.profilePicture,
+        profileImgUrl: variables.profilePicture,
         trackNames: variables.trackNames,
         track: variables.trackNames[0],
         techStackNames: variables.techStackNames,
         techStacks: variables.techStackNames,
         introduction: variables.introduction,
+        authority: "USER",
         isDummyProfile: false,
       };
       setProfileOverride(nextProfile);
@@ -529,6 +517,19 @@ export function ProfileSetupPage() {
     onError: (error) => {
       setSuccessMessage(null);
       setErrorMessage(error instanceof Error ? error.message : "프로필 설정 중 오류가 발생했습니다.");
+    },
+  });
+  const changePasswordMutation = useMutation({
+    mutationFn: changePassword,
+    onSuccess: (result) => {
+      setErrorMessage(null);
+      setSuccessMessage(result.message || "비밀번호가 변경되었습니다.");
+      setIsPasswordEditing(false);
+      resetPasswordForm();
+    },
+    onError: (error) => {
+      setSuccessMessage(null);
+      setErrorMessage(error instanceof Error ? error.message : "비밀번호 변경 중 오류가 발생했습니다.");
     },
   });
 
@@ -558,6 +559,12 @@ export function ProfileSetupPage() {
   }, [profile, reset]);
 
   const watchedProfilePicture = useWatch({ control, name: "profilePicture" });
+  const handleSocialConnect = (provider: SocialAuthProvider) => {
+    setPendingSocialProvider(provider);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    connectSocialLogin(provider);
+  };
   const watchedTrackNames = useWatch({ control, name: "trackNames" }) ?? [];
   const watchedTechStacks = useWatch({ control, name: "techStacks" }) ?? [];
   const watchedStudentId = useWatch({ control, name: "studentId" }) ?? "";
@@ -572,6 +579,7 @@ export function ProfileSetupPage() {
   const filteredTechStackOptions = techStackOptions.filter((stack) =>
     mapTechStackLabel(stack).toLowerCase().includes(techStackSearchValue.trim().toLowerCase()),
   );
+  const socialAccountByProvider = new Map((profile?.socialAccounts ?? []).map((account) => [account.provider, account]));
   const departmentSearchQuery = useQuery({
     queryKey: ["department-search", departmentSearchKeyword],
     queryFn: () => searchDepartmentNames(departmentSearchKeyword),
@@ -596,10 +604,11 @@ export function ProfileSetupPage() {
   const isLoading = currentUserQuery.isLoading;
   const isSetupRequired = Boolean(profile?.isDummyProfile);
   const isSubmitting = profileSetupMutation.isPending;
+  const isChangingPassword = changePasswordMutation.isPending;
   const isProfileActionDisabled = isSubmitting || isUploadingProfileImage;
+  const isPasswordActionDisabled = isChangingPassword || !isPasswordFormValid;
   const otherError =
     currentUserQuery.error instanceof ProfileRequestError &&
-    !isProfileSetupRequiredError(currentUserQuery.error) &&
     currentUserQuery.error.status !== 401 &&
     currentUserQuery.error.status !== 403
       ? currentUserQuery.error.message
@@ -644,6 +653,19 @@ export function ProfileSetupPage() {
     setIsCurrentPasswordVisible(false);
     setIsNewPasswordVisible(false);
     setIsConfirmNewPasswordVisible(false);
+  };
+
+  const handlePasswordChange = async () => {
+    if (isPasswordActionDisabled) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    await changePasswordMutation.mutateAsync({
+      oldPassword: currentPassword,
+      newPassword,
+    });
   };
 
   const toggleTechStack = (stack: ProfileTechStack) => {
@@ -805,7 +827,7 @@ export function ProfileSetupPage() {
                         <img className="size-24 rounded-full border border-[#e7ecf2] object-cover" src={profileImage} alt="프로필 사진" />
                         {isEditing ? (
                           <div className="flex flex-col gap-3">
-                            <label className="w-fit cursor-pointer rounded border border-[var(--color-primary-main)] bg-[var(--color-primary-main)] px-4 py-1.5 text-sm text-[#f7faff]">
+                            <label className="w-fit cursor-pointer rounded-[4px] border border-[var(--color-primary-main)] bg-[var(--color-primary-main)] px-4 py-1.5 text-sm text-[#f7faff]">
                               {isUploadingProfileImage ? "업로드 중..." : "이미지 업로드"}
                               <input
                                 className="hidden"
@@ -816,7 +838,7 @@ export function ProfileSetupPage() {
                               />
                             </label>
                             <button
-                              className="w-fit rounded border border-[#dee2e6] px-4 py-1.5 text-sm text-[#1e293b]"
+                              className="w-fit rounded-[4px] border border-[#dee2e6] px-4 py-1.5 text-sm text-[#1e293b]"
                               type="button"
                               disabled={isProfileActionDisabled}
                               onClick={() =>
@@ -840,7 +862,7 @@ export function ProfileSetupPage() {
                         isEditing ? (
                           <div className="flex w-full flex-col gap-2 md:flex-row md:items-center">
                             <input
-                              className="h-11 min-w-0 flex-1 rounded-lg border border-[#dee2e6] px-4 text-sm text-[#1e293b] outline-none"
+                              className="h-10 min-w-0 flex-1 rounded-[4px] border border-[#dee2e6] px-4 text-sm text-[#1e293b] outline-none"
                               type="text"
                               disabled={isSubmitting}
                               {...register("nickname", {
@@ -848,7 +870,7 @@ export function ProfileSetupPage() {
                               })}
                             />
                             <button
-                              className="h-11 shrink-0 rounded-lg bg-[var(--color-primary-main)] px-4 text-sm font-medium text-[#f7faff]"
+                              className="h-10 shrink-0 rounded-[4px] bg-[var(--color-primary-main)] px-4 text-sm font-medium text-[#f7faff]"
                               type="button"
                             >
                               중복 확인
@@ -915,7 +937,7 @@ export function ProfileSetupPage() {
                           <div className="relative w-full">
                             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#94a3b8]" />
                             <input
-                              className="h-11 w-full rounded-lg border border-[#dee2e6] pl-10 pr-4 text-sm text-[#1e293b] outline-none"
+                              className="h-10 w-full rounded-[4px] border border-[#dee2e6] pl-10 pr-4 text-sm text-[#1e293b] outline-none"
                               type="text"
                               disabled={isSubmitting}
                               autoComplete="off"
@@ -951,7 +973,7 @@ export function ProfileSetupPage() {
                               }}
                             />
                             {shouldShowDepartmentSuggestions ? (
-                              <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-10 overflow-hidden rounded-lg border border-[#dee2e6] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+                              <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-10 overflow-hidden rounded-[8px] border border-[#dee2e6] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
                                 {departmentSearchQuery.isPending ? (
                                   <div className="px-4 py-3 text-sm text-[#64748b]">학과를 검색하는 중...</div>
                                 ) : null}
@@ -1000,7 +1022,7 @@ export function ProfileSetupPage() {
                         isEditing ? (
                           <div className="w-full">
                             <input
-                              className="h-11 w-full max-w-[220px] rounded-lg border border-[#dee2e6] px-4 text-sm text-[#1e293b] outline-none"
+                              className="h-10 w-full max-w-[220px] rounded-[4px] border border-[#dee2e6] px-4 text-sm text-[#1e293b] outline-none"
                               type="text"
                               inputMode="numeric"
                               maxLength={9}
@@ -1029,7 +1051,7 @@ export function ProfileSetupPage() {
                                 {watchedTechStacks.map((stack) => (
                                   <button
                                     key={stack}
-                                    className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-[15px] font-semibold text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
+                                    className="flex items-center gap-2 rounded-[8px] bg-white px-4 py-2 text-[15px] font-semibold text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
                                     type="button"
                                     onClick={() =>
                                       setValue(
@@ -1066,7 +1088,7 @@ export function ProfileSetupPage() {
                             {(getCurrentTechStacks(profile).length ? getCurrentTechStacks(profile) : ["등록 전"]).map((stack) => (
                               <span
                                 key={stack}
-                                className="rounded-lg bg-white px-4 py-2 text-[15px] font-semibold text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
+                                className="rounded-[8px] bg-white px-4 py-2 text-[15px] font-semibold text-[var(--color-primary-main)] shadow-[0_2px_8px_rgba(135,188,245,0.2)]"
                               >
                                 {mapTechStackLabel(stack)}
                               </span>
@@ -1082,7 +1104,7 @@ export function ProfileSetupPage() {
                         isEditing ? (
                           <div className="w-full">
                             <textarea
-                              className="min-h-[72px] w-full rounded-lg border border-[#dee2e6] px-4 py-3 text-sm font-medium leading-6 text-[#1e293b] outline-none placeholder:text-[#94a3b8]"
+                              className="min-h-[72px] w-full rounded-[4px] border border-[#dee2e6] px-4 py-3 text-sm font-medium leading-6 text-[#1e293b] outline-none placeholder:text-[#94a3b8]"
                               placeholder="자신을 소개하는 문장을 입력해주세요."
                               maxLength={100}
                               disabled={isSubmitting}
@@ -1092,7 +1114,7 @@ export function ProfileSetupPage() {
                           </div>
                         ) : (
                           <div className="max-w-[680px] font-semibold leading-6 text-[#1e293b]">
-                            {getProfileSummary(profile || dummyProfile)}
+                            {profile ? getProfileSummary(profile) : "아직 등록된 자기소개가 없습니다."}
                           </div>
                         )
                       }
@@ -1124,15 +1146,12 @@ export function ProfileSetupPage() {
                           취소
                         </button>
                         <button
-                          className="w-fit rounded border border-[#d8dee6] bg-[#eef2f6] px-4 py-1.5 text-sm text-[#94a3b8] disabled:cursor-not-allowed"
+                          className="w-fit rounded border border-[var(--color-primary-main)] bg-[var(--color-primary-main)] px-4 py-1.5 text-sm text-[#f7faff] disabled:opacity-70"
                           type="button"
-                          disabled={!isPasswordFormValid}
-                          onClick={() => {
-                            setSuccessMessage(null);
-                            setErrorMessage("비밀번호 변경 API가 아직 연결되지 않았습니다.");
-                          }}
+                          disabled={isPasswordActionDisabled}
+                          onClick={handlePasswordChange}
                         >
-                          저장
+                          {isChangingPassword ? "저장 중..." : "저장"}
                         </button>
                       </div>
                     ) : (
@@ -1152,11 +1171,11 @@ export function ProfileSetupPage() {
                   </div>
 
                   {isPasswordEditing ? (
-                    <div className="grid gap-5 rounded-2xl border border-[#eef2f6] bg-[#fcfdff] p-5 md:ml-[128px] md:p-6">
+                    <div className="grid gap-5 rounded-[16px] border border-[#eef2f6] bg-[#fcfdff] p-5 md:ml-[128px] md:p-6">
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-14 w-full rounded-[20px] border border-[#d9e1ea] bg-white px-5 pr-14 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
                             placeholder="현재 비밀번호"
                             type={isCurrentPasswordVisible ? "text" : "password"}
                             value={currentPassword}
@@ -1176,7 +1195,7 @@ export function ProfileSetupPage() {
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-14 w-full rounded-[20px] border border-[#d9e1ea] bg-white px-5 pr-14 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
                             placeholder="새 비밀번호"
                             type={isNewPasswordVisible ? "text" : "password"}
                             value={newPassword}
@@ -1201,7 +1220,7 @@ export function ProfileSetupPage() {
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-14 w-full rounded-[20px] border border-[#d9e1ea] bg-white px-5 pr-14 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
                             placeholder="새 비밀번호 확인"
                             type={isConfirmNewPasswordVisible ? "text" : "password"}
                             value={confirmNewPassword}
@@ -1218,17 +1237,49 @@ export function ProfileSetupPage() {
                         <PasswordRequirement label="확인을 위해 새 비밀번호를 다시 입력해 주세요." isValid={isConfirmPasswordMatched} />
                       </div>
 
-                      <div className="text-sm text-[#94a3b8]">비밀번호 변경 저장은 API 연동 후 활성화됩니다.</div>
+                      <div className="text-sm text-[#94a3b8]">현재 비밀번호 확인 후 새 비밀번호로 변경됩니다.</div>
                     </div>
                   ) : null}
 
                   <div className="text-[15px] font-medium leading-6 text-[#1e293b]">소셜 로그인 연동 관리</div>
 
                   <div className="grid gap-3">
-                    <SocialLoginRow badge="GH" label={profile?.email || "미등록"} actionLabel="연동 해제하기" />
-                    <SocialLoginRow badge="G" label={profile?.email || "미등록"} actionLabel="연동 해제하기" />
-                    <SocialLoginRow badge="K" label="연동되지 않음" actionLabel="연동하기" actionVariant="primary" />
-                    <SocialLoginRow badge="N" label="연동되지 않음" actionLabel="연동하기" actionVariant="primary" />
+                    <SocialLoginRow
+                      provider="GitHub"
+                      iconSrc="/social/github.png"
+                      label={socialAccountByProvider.get("github")?.email || (socialAccountByProvider.has("github") ? "연동됨" : "연동되지 않음")}
+                      isConnected={socialAccountByProvider.has("github")}
+                      actionLabel={socialAccountByProvider.has("github") ? "연동됨" : "연동하기"}
+                      disabled={pendingSocialProvider !== null || socialAccountByProvider.has("github")}
+                      onAction={() => handleSocialConnect("github")}
+                    />
+                    <SocialLoginRow
+                      provider="Google"
+                      iconSrc="/social/google.png"
+                      label={socialAccountByProvider.get("google")?.email || (socialAccountByProvider.has("google") ? "연동됨" : "연동되지 않음")}
+                      isConnected={socialAccountByProvider.has("google")}
+                      actionLabel={socialAccountByProvider.has("google") ? "연동됨" : "연동하기"}
+                      disabled={pendingSocialProvider !== null || socialAccountByProvider.has("google")}
+                      onAction={() => handleSocialConnect("google")}
+                    />
+                    <SocialLoginRow
+                      provider="Kakao"
+                      iconSrc="/social/kakao.png"
+                      label={socialAccountByProvider.get("kakao")?.email || (socialAccountByProvider.has("kakao") ? "연동됨" : "연동되지 않음")}
+                      isConnected={socialAccountByProvider.has("kakao")}
+                      actionLabel={socialAccountByProvider.has("kakao") ? "연동됨" : "연동하기"}
+                      disabled={pendingSocialProvider !== null || socialAccountByProvider.has("kakao")}
+                      onAction={() => handleSocialConnect("kakao")}
+                    />
+                    <SocialLoginRow
+                      provider="Naver"
+                      iconSrc="/social/naver.png"
+                      label={socialAccountByProvider.get("naver")?.email || (socialAccountByProvider.has("naver") ? "연동됨" : "연동되지 않음")}
+                      isConnected={socialAccountByProvider.has("naver")}
+                      actionLabel={socialAccountByProvider.has("naver") ? "연동됨" : "연동하기"}
+                      disabled={pendingSocialProvider !== null || socialAccountByProvider.has("naver")}
+                      onAction={() => handleSocialConnect("naver")}
+                    />
                   </div>
                 </div>
               </section>

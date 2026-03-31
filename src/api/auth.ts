@@ -1,11 +1,14 @@
 
 import type {
+  ChangePasswordRequest,
   EmailVerificationRequest,
   LoginRequest,
   SignUpRequest,
   VerifyEmailCodeRequest,
 } from "../types/auth";
-import { postWithCookies } from "./http";
+import { buildApiUrl, postWithCookies } from "./http";
+
+export type SocialAuthProvider = "google" | "kakao" | "naver" | "github";
 
 async function requestAuth<T, B>(path: string, body: B) {
   return postWithCookies<T, B>(path, body);
@@ -23,10 +26,30 @@ export function logout() {
   return requestAuth<string, Record<string, never>>("/api/v1/users/logout", {});
 }
 
+export function changePassword(payload: ChangePasswordRequest) {
+  return requestAuth<string, ChangePasswordRequest>("/api/v1/users/change-password", payload);
+}
+
 export function sendEmailVerification(payload: EmailVerificationRequest) {
   return requestAuth<string, EmailVerificationRequest>("/api/v1/auth/email-verification", payload);
 }
 
 export function verifyEmailCode(payload: VerifyEmailCodeRequest) {
   return requestAuth<string, VerifyEmailCodeRequest>("/api/v1/auth/verify-code", payload);
+}
+
+function redirectToAuthPage(path: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.location.assign(buildApiUrl(path));
+}
+
+export function startSocialLogin(provider: SocialAuthProvider) {
+  redirectToAuthPage(`/api/v1/oauth2/login/${provider}`);
+}
+
+export function connectSocialLogin(provider: SocialAuthProvider) {
+  redirectToAuthPage(`/api/v1/oauth2/connect/${provider}`);
 }

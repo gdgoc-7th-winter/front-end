@@ -1,17 +1,46 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { clearAuthCookies } from "../api/http";
+import { deleteMyProfile } from "../api/profile";
 import { MyPageShell } from "../components/MyPageShell";
 
 const settingTabs = ["알림 설정", "약관 동의", "회원 탈퇴"] as const;
 
 export function MyAccountSettingsPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<(typeof settingTabs)[number]>("알림 설정");
   const [postCommentAlert, setPostCommentAlert] = useState(true);
   const [newsAlert, setNewsAlert] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [agreePrivacy, setAgreePrivacy] = useState(true);
   const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [withdrawErrorMessage, setWithdrawErrorMessage] = useState<string | null>(null);
 
   const allChecked = agreeTerms && agreePrivacy && agreeMarketing;
+  const deleteAccountMutation = useMutation({
+    mutationFn: deleteMyProfile,
+    onSuccess: async () => {
+      clearAuthCookies();
+      await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      navigate("/login", { replace: true });
+    },
+    onError: (error) => {
+      setWithdrawErrorMessage(error instanceof Error ? error.message : "회원 탈퇴 중 오류가 발생했습니다.");
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    const shouldDelete = window.confirm("회원 탈퇴를 진행할까요? 삭제된 계정 정보와 활동 기록은 복구할 수 없습니다.");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setWithdrawErrorMessage(null);
+    deleteAccountMutation.mutate();
+  };
 
   return (
     <MyPageShell activeSection="setting-account">
@@ -129,9 +158,15 @@ export function MyAccountSettingsPage() {
                 <br />
                 작성한 게시글 및 댓글, 지원 기록은 복구되지 않으며 일부 정보는 관련 법령에 따라 보관될 수 있습니다.
               </div>
-              <button className="mt-6 rounded-xl bg-[#f04438] px-5 py-3 text-[14px] font-semibold text-white" type="button">
-                회원 탈퇴 진행하기
+              <button
+                className="mt-6 rounded-xl bg-[#f04438] px-5 py-3 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+                type="button"
+                disabled={deleteAccountMutation.isPending}
+                onClick={handleDeleteAccount}
+              >
+                {deleteAccountMutation.isPending ? "회원 탈퇴 처리 중..." : "회원 탈퇴 진행하기"}
               </button>
+              {withdrawErrorMessage ? <p className="mt-4 text-[13px] text-[#d92d20]">{withdrawErrorMessage}</p> : null}
             </div>
           </div>
         ) : null}
