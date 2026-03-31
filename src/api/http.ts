@@ -52,7 +52,7 @@ export function clearAuthCookies() {
   });
 }
 
-function buildApiUrl(path: string) {
+export function buildApiUrl(path: string) {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
@@ -112,7 +112,7 @@ function createDefaultHeaders(headers?: HeadersInit) {
 
 async function executeRequest<T, B>(
   path: string,
-  method: "GET" | "POST" | "PATCH",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   shouldIncludeCookies: boolean,
   options?: RequestOptions<B>,
 ): Promise<CommonResponse<T>> {
@@ -169,6 +169,10 @@ export function patchWithCookies<T, B>(path: string, body: B, options?: Omit<Req
     ...options,
     body,
   });
+}
+
+export function deleteWithCookies<T>(path: string, options?: Omit<RequestOptions<never>, "body">) {
+  return executeRequest<T, never>(path, "DELETE", true, options);
 }
 
 export function getWithoutCookies<T>(path: string, options?: Omit<RequestOptions<never>, "body">) {

@@ -3,6 +3,9 @@ import { postWithCookies } from "./http";
 
 type UploadType = "PROFILE_IMAGE";
 
+const FILES_PRESIGNED_URL_PATH = "/api/v1/files/presigned-url";
+const FILES_COMPLETE_PATH = "/api/v1/files/complete";
+
 interface PresignedUrlRequest {
   uploadType: UploadType;
   contentType: string;
@@ -33,11 +36,11 @@ interface CompleteUploadResponse {
 const PROFILE_IMAGE_UPLOAD_TYPE: UploadType = "PROFILE_IMAGE";
 
 async function requestPresignedUrl(body: PresignedUrlRequest) {
-  return postWithCookies<PresignedUrlResponse, PresignedUrlRequest>("/api/files/presigned-url", body);
+  return postWithCookies<PresignedUrlResponse, PresignedUrlRequest>(FILES_PRESIGNED_URL_PATH, body);
 }
 
 async function completeUpload(body: CompleteUploadRequest) {
-  return postWithCookies<CompleteUploadResponse, CompleteUploadRequest>("/api/files/complete", body);
+  return postWithCookies<CompleteUploadResponse, CompleteUploadRequest>(FILES_COMPLETE_PATH, body);
 }
 
 export async function uploadProfileImage(file: File) {
