@@ -4,7 +4,7 @@ import { Bookmark, ChevronDown, Eye, Megaphone, MessageCircle, PenSquare, Search
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { type BoardPostOrder, type LectureCampus, getLecturePosts } from "../../api/posts";
+import { getDisplayAuthorName, getLecturePosts, type BoardPostOrder, type LectureCampus } from "../../api/posts";
 import { useOptionalCurrentUser } from "../../hooks/useOptionalCurrentUser";
 
 const SORT_OPTIONS: Array<{ label: string; value: BoardPostOrder }> = [
@@ -112,7 +112,7 @@ export function LecturePage() {
     staleTime: 1000 * 60,
   });
 
-  const posts = lecturePostsQuery.data?.data ?? [];
+  const posts = lecturePostsQuery.data?.posts ?? [];
 
   const onSubmitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -284,7 +284,7 @@ export function LecturePage() {
                   <div className="grid gap-1">
                     <div className="flex items-center gap-1.5">
                       <p className="text-[13px] font-bold leading-5 text-[#0f172a]">
-                        {post.author?.nickname ?? "익명"}
+                        {getDisplayAuthorName(post.author?.nickname)}
                       </p>
                       {post.author?.tierBadgeImageUrl ? (
                         <img

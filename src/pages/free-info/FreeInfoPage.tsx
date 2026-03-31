@@ -4,7 +4,7 @@ import { Bookmark, Eye, MessageCircle, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { type BoardPostOrder, getBoardPosts } from "../../api/posts";
+import { getBoardPosts, getDisplayAuthorName, type BoardPostOrder } from "../../api/posts";
 import { UserTierIcon } from "../../components/UserTierIcon";
 import { useOptionalCurrentUser } from "../../hooks/useOptionalCurrentUser";
 
@@ -72,7 +72,7 @@ export function FreeInfoPage() {
     staleTime: 1000 * 60,
   });
 
-  const posts = freeInfoPostsQuery.data?.data ?? [];
+  const posts = freeInfoPostsQuery.data?.posts ?? [];
 
   const onSubmitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -216,7 +216,7 @@ export function FreeInfoPage() {
                   />
                   <div className="grid gap-1">
                     <div className="flex items-center gap-1">
-                      <p className="text-[13px] font-bold leading-5 text-[#0f172a]">{post.author?.nickname || post.authorNickname || "익명"}</p>
+                      <p className="text-[13px] font-bold leading-5 text-[#0f172a]">{getDisplayAuthorName(post.author?.nickname, post.authorNickname)}</p>
                       {post.author?.tierBadgeImageUrl ? (
                         <img alt="" className="h-[13px] w-3 object-contain" src={post.author.tierBadgeImageUrl} />
                       ) : (

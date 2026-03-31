@@ -209,7 +209,6 @@ export function SignupPage() {
     trigger,
     watch,
     setValue,
-    reset,
     formState: { errors },
   } = useForm<SignupFormValues>({
     defaultValues: {
@@ -460,14 +459,6 @@ export function SignupPage() {
 
     clearMessages();
     setCurrentScreen(nextScreen);
-  };
-
-  const resetEntireFlow = () => {
-    clearMessages();
-    reset();
-    resetVerificationState();
-    setCurrentScreen(1);
-    setNicknameCheckedValue("");
   };
 
   const renderFormContent = () => {
