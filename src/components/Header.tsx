@@ -1,6 +1,6 @@
 ﻿
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   BookOpenCheck,
@@ -12,7 +12,7 @@ import {
   LogOut,
   Megaphone,
   Medal,
-  MessageSquareMore ,
+  MessageSquareMore,
   Newspaper,
   Search,
   Settings,
@@ -21,30 +21,23 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import { clearAuthCookies } from "../api/http";
-import { getCurrentUser, isProfileSetupRequiredError, ProfileRequestError } from "../api/profile";
-import type { CurrentUserResponse } from "../api/profile";
+import { useOptionalCurrentUser } from "../hooks/useOptionalCurrentUser";
 
 const desktopNavItems = [
   { label: "자유/정보", to: "/free-info" },
-  { label: "코딩 테스트", to: "/free-info" },
-  { label: "팀원 모집", to: "/free-info" },
+  { label: "코딩 테스트", to: "/coding-test" },
+  { label: "팀원 모집", to: "/team-recruit" },
   { label: "강의/수업", to: "/lecture" },
-  { label: "동아리/행사/홍보", to: "/lecture" },
+  { label: "동아리/행사/홍보", to: "/promotions" },
 ];
 
 const mobileDockItems = [
   { label: "자유/정보", to: "/free-info", icon: Newspaper },
-  { label: "코테", to: "/free-info", icon: Code2 },
-  { label: "팀원 모집", to: "/free-info", icon: UsersRound },
+  { label: "코테", to: "/coding-test", icon: Code2 },
+  { label: "팀원 모집", to: "/team-recruit", icon: UsersRound },
   { label: "강의/수업", to: "/lecture", icon: BookOpenCheck },
-  { label: "동아리/홍보", to: "/lecture", icon: Megaphone },
+  { label: "동아리/홍보", to: "/promotions", icon: Megaphone },
 ];
-
-const dummyUser: CurrentUserResponse = {
-  nickname: "dummy",
-  profilePicture: "/default_profile.png",
-  isDummyProfile: true,
-};
 
 const profileMenuItems: Array<{
   label: string;
@@ -84,27 +77,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const currentUserQuery = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      try {
-        const response = await getCurrentUser();
-        return response.data;
-      } catch (error) {
-        if (isProfileSetupRequiredError(error)) {
-          return dummyUser;
-        }
-
-        if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
-          return null;
-        }
-
-        throw error;
-      }
-    },
-    retry: false,
-    staleTime: 1000 * 60 * 5,
-  });
+  const currentUserQuery = useOptionalCurrentUser();
 
   const user = currentUserQuery.data ?? null;
   const logoutMutation = useMutation({
@@ -143,9 +116,7 @@ export function Header() {
     };
   }, [isProfileMenuOpen]);
 
-  const dockVisibilityClass = useMemo(() => {
-    return showMobileDock ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0";
-  }, [showMobileDock]);
+  const dockVisibilityClass = showMobileDock ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0";
 
   return (
     <>
@@ -201,7 +172,7 @@ export function Header() {
               type="button"
               aria-label="메시지"
             >
-              <MessageSquareMore  className="size-4.5 md:size-5" strokeWidth={2.1} />
+              <MessageSquareMore className="size-4.5 md:size-5" strokeWidth={2.1} />
             </button>
 
             {user ? (
