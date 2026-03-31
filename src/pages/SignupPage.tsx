@@ -488,7 +488,7 @@ export function SignupPage() {
               <span className="ml-3 shrink-0 text-sm text-[#58697f]">{EMAIL_DOMAIN}</span>
             </div>
             <button
-              className="h-12 shrink-0 rounded-xl bg-[#87BCF5] px-4 text-sm font-medium text-white disabled:opacity-70"
+              className="h-12 shrink-0 rounded-xl bg-[#87BCF5] px-4 text-sm font-medium text-white"
               type="button"
               onClick={onClickSendVerification}
               disabled={isSendingVerification || isVerifyingCode || isEmailVerified}
@@ -512,7 +512,7 @@ export function SignupPage() {
               </div>
 
               <button
-                className="mt-6 h-12 w-full rounded-xl bg-[#87BCF5] text-sm font-medium text-white transition hover:bg-[#6EAAF1] disabled:opacity-70"
+                className="mt-6 h-12 w-full rounded-xl bg-[#87BCF5] text-sm font-medium text-white transition hover:bg-[#6EAAF1]"
                 type="button"
                 onClick={isEmailVerified ? goToNextScreen : onClickVerifyCode}
                 disabled={isVerifyingCode}
@@ -619,7 +619,7 @@ export function SignupPage() {
               })}
             />
             <button
-              className="h-12 shrink-0 rounded-xl bg-[#87BCF5] px-4 text-sm font-medium text-white disabled:opacity-70"
+              className="h-12 shrink-0 rounded-xl bg-[#87BCF5] px-4 text-sm font-medium text-white"
               type="button"
               onClick={onClickNicknameCheck}
             >
@@ -664,7 +664,7 @@ export function SignupPage() {
           </div>
 
           <button
-            className="mt-[29px] h-12 w-full rounded-xl bg-[#87BCF5] text-sm font-medium text-white transition hover:bg-[#6EAAF1] disabled:opacity-70"
+            className="mt-[29px] h-12 w-full rounded-xl bg-[#87BCF5] text-sm font-medium text-white transition hover:bg-[#6EAAF1]"
             type="button"
             onClick={goToNextScreen}
             disabled={isSigningUp}
@@ -710,13 +710,6 @@ export function SignupPage() {
         {errorMessage ? <p className="mt-4 text-left text-sm text-red-600">{errorMessage}</p> : null}
         {successMessage ? <p className="mt-4 text-left text-sm text-green-600">{successMessage}</p> : null}
 
-        {currentScreen === 5 ? (
-          <div className="mt-4 text-sm text-[#5f7188]">
-            <button className="underline" type="button" onClick={resetEntireFlow}>
-              다시 가입 흐름 보기
-            </button>
-          </div>
-        ) : null}
 
         <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[#5f7188]">
           <span>이미 계정이 있으신가요?</span>

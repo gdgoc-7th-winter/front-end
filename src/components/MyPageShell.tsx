@@ -47,7 +47,7 @@ export function MyPageShell({
 
       <section className="mx-auto flex w-full max-w-[1024px] flex-col gap-8 px-4 py-8 md:gap-10 md:px-6 md:py-12">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-[42px]">
-          <aside className="w-full shrink-0 rounded-xl border border-[#eef2f6] bg-white md:w-[178px] md:border-0 md:bg-transparent">
+          <aside className="w-full shrink-0 rounded-lg border border-[#eef2f6] bg-white md:w-[178px] md:border-0 md:bg-transparent">
             <div className="grid md:gap-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
@@ -58,7 +58,7 @@ export function MyPageShell({
                     key={item.id}
                     className={`flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold ${
                       isActive
-                        ? "rounded-xl bg-[rgba(135,188,245,0.1)] text-[var(--color-primary-active)]"
+                        ? "rounded-lg bg-[rgba(135,188,245,0.1)] text-[var(--color-primary-active)]"
                         : "text-[#475569]"
                     }`}
                     to={item.to!}
