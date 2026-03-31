@@ -52,7 +52,7 @@ export function clearAuthCookies() {
   });
 }
 
-function buildApiUrl(path: string) {
+export function buildApiUrl(path: string) {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
@@ -171,6 +171,19 @@ export function patchWithCookies<T, B>(path: string, body: B, options?: Omit<Req
   });
 }
 
+
+export function deleteWithCookies<T>(path: string, options?: Omit<RequestOptions<never>, "body">) {
+  return executeRequest<T, never>(path, "DELETE", true, options);
+}
+
+export function getWithoutCookies<T>(path: string, options?: Omit<RequestOptions<never>, "body">) {
+  return executeRequest<T, never>(path, "GET", false, options);
+}
+
+export function postWithoutCookies<T, B>(path: string, body: B, options?: Omit<RequestOptions<B>, "body">) {
+  return executeRequest<T, B>(path, "POST", false, { ...options, body});}
+
+    
 export function putWithCookies<T, B>(path: string, body: B, options?: Omit<RequestOptions<B>, "body">) {
   return executeRequest<T, B>(path, "PUT", true, {
     ...options,
