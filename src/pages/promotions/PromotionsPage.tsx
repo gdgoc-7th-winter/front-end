@@ -3,7 +3,7 @@ import { Bookmark, Eye, MessageCircle, PencilLine, Star, ThumbsUp } from "lucide
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getPromotions, type PromotionCategory, type PromotionPostSummary } from "../../api/posts";
+import { WITHDRAWN_USER_LABEL, getPromotions, type PromotionCategory, type PromotionPostSummary } from "../../api/posts";
 import { UserTierIcon } from "../../components/UserTierIcon";
 import { useOptionalCurrentUser } from "../../hooks/useOptionalCurrentUser";
 
@@ -151,7 +151,7 @@ function normalizePromotionListItem(value: unknown): PromotionListItem | null {
     viewCount: toSafeNumber(post["viewCount"]),
     scrapCount: toSafeNumber(post["scrapCount"]),
     author: {
-      nickname: toSafeString(author?.["nickname"], "익명"),
+      nickname: toSafeString(author?.["nickname"], WITHDRAWN_USER_LABEL),
       profileImageUrl: toSafeString(author?.["profileImageUrl"]) || "/default_profile.png",
       departmentName: toSafeString(author?.["departmentName"]),
       representativeTrackName: toSafeString(author?.["representativeTrackName"]),
@@ -200,7 +200,7 @@ export function PromotionsPage() {
   });
 
   const posts = useMemo(() => {
-    const serverPosts = normalizePromotionPosts(promotionsQuery.data?.data)
+    const serverPosts = normalizePromotionPosts(promotionsQuery.data?.posts)
       .map((post) => normalizePromotionListItem(post))
       .filter((post): post is PromotionListItem => post !== null);
     const normalizedKeyword = keyword.trim().toLowerCase();
@@ -214,7 +214,7 @@ export function PromotionsPage() {
 
       return searchableValues.some((value) => value.toLowerCase().includes(normalizedKeyword));
     });
-  }, [keyword, promotionsQuery.data?.data]);
+  }, [keyword, promotionsQuery.data?.posts]);
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

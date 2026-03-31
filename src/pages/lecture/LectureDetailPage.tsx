@@ -7,6 +7,7 @@ import {
   deletePost,
   deletePostComment,
   flattenPostComments,
+  getDisplayAuthorName,
   getPostComments,
   getPostDetail,
   increasePostView,
@@ -151,7 +152,7 @@ export function LectureDetailPage() {
     queryKey: ["post-comments", numericPostId],
     queryFn: async () => {
       const response = await getPostComments(numericPostId);
-      return flattenPostComments(response.data.data);
+      return flattenPostComments(response.data.comments);
     },
     enabled: canRequestPostDetail,
     staleTime: 1000 * 30,
@@ -347,7 +348,7 @@ export function LectureDetailPage() {
     post?.thumbnailUrl ||
     post?.attachments.find((attachment) => attachment.contentType.startsWith("image/"))?.fileUrl ||
     null;
-  const authorName = post?.author?.nickname || post?.authorNickname || "익명";
+  const authorName = getDisplayAuthorName(post?.author?.nickname, post?.authorNickname);
   const authorProfileImageUrl = post?.author?.profileImageUrl || "/default_profile.png";
   const authorDepartmentText =
     [post?.author?.departmentName, post?.author?.representativeTrackName].filter(Boolean).join(" · ") || "프로필 정보 없음";
@@ -603,7 +604,7 @@ export function LectureDetailPage() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1">
                           <p className="text-[13px] font-bold leading-5 text-[#0f172a]">
-                            {comment.authorNickname || comment.userNickname || "익명"}
+                            {getDisplayAuthorName(comment.authorNickname, comment.userNickname)}
                           </p>
                           {comment.userId === post.authorId ? (
                             <span className="rounded-[4px] px-1.5 py-0.5 text-[8px] font-bold tracking-[-0.04em] text-[var(--color-primary-main)]">

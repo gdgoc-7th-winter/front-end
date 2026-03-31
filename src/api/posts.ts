@@ -2,6 +2,7 @@
 import { deleteWithCookies, getWithCookies, getWithoutCookies, patchWithCookies, postWithCookies, putWithCookies } from "./http";
 
 export type BoardPostOrder = "latest" | "views" | "scrap" | "likes";
+export const WITHDRAWN_USER_LABEL = "탈퇴한 사용자";
 
 export interface GetBoardPostsParams {
   code: string;
@@ -24,6 +25,7 @@ export interface BoardPostSummary {
     departmentName?: string | null;
     representativeTrackName?: string | null;
     tierBadgeImageUrl?: string | null;
+    isWithdrawn?: boolean;
   };
   authorNickname?: string;
   likeCount?: number;
@@ -41,8 +43,8 @@ export interface BoardPostsMeta {
   totalPages: number;
 }
 
-export interface BoardPostsResponse {
-  data: BoardPostSummary[];
+export interface PaginatedPostsResponse<TPost> {
+  posts: TPost[];
   meta: BoardPostsMeta;
 }
 
@@ -116,6 +118,7 @@ export interface PostDetail {
     departmentName?: string | null;
     representativeTrackName?: string | null;
     tierBadgeImageUrl?: string | null;
+    isWithdrawn?: boolean;
   };
   authorNickname: string;
   authorId?: number;
@@ -157,18 +160,15 @@ export interface PostComment {
   hasMoreReplies?: boolean;
 }
 
-export interface PostCommentsResponse {
-  data: PostComment[];
-  meta: BoardPostsMeta;
+export interface GetPostCommentsParams {
+  cursor?: string;
+  size?: number;
 }
 
-export type SortDirection = "ASC" | "DESC";
-export type PostCommentSort = `${string},${SortDirection}`;
-
-export interface GetPostCommentsParams {
-  page?: number;
-  size?: number;
-  sort?: PostCommentSort[];
+export interface CommentCursorResponse {
+  comments: PostComment[];
+  nextCursor?: string | null;
+  hasNext: boolean;
 }
 
 export interface CreatePostCommentRequest {
@@ -219,6 +219,7 @@ export interface LecturePostSummary {
     departmentName?: string | null;
     representativeTrackName?: string | null;
     tierBadgeImageUrl?: string | null;
+    isWithdrawn?: boolean;
   };
   department?: string | null;
   campus?: LectureCampus;
@@ -229,11 +230,6 @@ export interface LecturePostSummary {
   viewer?: PostViewer;
   tagNames: string[];
   createdAt: string;
-}
-
-export interface LecturePostsResponse {
-  data: LecturePostSummary[];
-  meta: BoardPostsMeta;
 }
 
 export type PromotionCategory = "CLUB" | "EVENT" | "PROJECT" | "CONTEST" | "ETC";
@@ -254,6 +250,7 @@ export interface PromotionPostSummary {
       departmentName?: string | null;
       representativeTrackName?: string | null;
       tierBadgeImageUrl?: string | null;
+      isWithdrawn?: boolean;
     };
     likeCount: number;
     viewCount: number;
@@ -271,11 +268,6 @@ export interface GetPromotionsParams {
   page?: number;
   size?: number;
   sort?: string[];
-}
-
-export interface PromotionsResponse {
-  data: PromotionPostSummary[];
-  meta: BoardPostsMeta;
 }
 
 export interface PromotionAttachmentRequest {
@@ -330,7 +322,7 @@ function buildBoardPostsQuery(params: GetBoardPostsParams) {
 export function getBoardPosts(params: GetBoardPostsParams) {
   const queryString = buildBoardPostsQuery(params);
 
-  return getWithoutCookies<BoardPostsResponse>(`/api/v1/boards/${params.code}/posts?${queryString}`);
+  return getWithoutCookies<PaginatedPostsResponse<BoardPostSummary>>(`/api/v1/boards/${params.code}/posts?${queryString}`);
 }
 
 export function createBoardPost(code: string, body: CreateBoardPostRequest) {
@@ -375,15 +367,11 @@ export function unscrapPost(postId: number) {
 
 function buildPostCommentsQuery(params: GetPostCommentsParams = {}) {
   const searchParams = new URLSearchParams();
-  const page = params.page ?? 0;
-  const size = params.size ?? 20;
-  const sort = params.sort?.length ? params.sort : ["createdAt,ASC"];
+  searchParams.set("size", String(params.size ?? 20));
 
-  searchParams.set("page", String(page));
-  searchParams.set("size", String(size));
-  sort.forEach((sortValue) => {
-    searchParams.append("sort", sortValue);
-  });
+  if (params.cursor) {
+    searchParams.set("cursor", params.cursor);
+  }
 
   return searchParams.toString();
 }
@@ -391,7 +379,26 @@ function buildPostCommentsQuery(params: GetPostCommentsParams = {}) {
 export function getPostComments(postId: number, params: GetPostCommentsParams = {}) {
   const queryString = buildPostCommentsQuery(params);
 
-  return getWithCookies<PostCommentsResponse>(`/api/v1/posts/${postId}/comments?${queryString}`);
+  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments?${queryString}`);
+}
+
+export function getCommentReplies(postId: number, parentCommentId: number, params: GetPostCommentsParams = {}) {
+  const queryString = buildPostCommentsQuery(params);
+
+  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments/${parentCommentId}/comments?${queryString}`);
+}
+
+function getTrimmedDisplayValue(value?: string | null) {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+  return trimmedValue || undefined;
+}
+
+export function getDisplayAuthorName(...candidates: Array<string | null | undefined>) {
+  return candidates.map((candidate) => getTrimmedDisplayValue(candidate)).find(Boolean) ?? WITHDRAWN_USER_LABEL;
 }
 
 function normalizePostComment(comment: PostComment, parentCommentId?: number | null, depth = 0): PostComment {
@@ -402,7 +409,7 @@ function normalizePostComment(comment: PostComment, parentCommentId?: number | n
   return {
     ...comment,
     userNickname: comment.userNickname,
-    authorNickname: comment.authorNickname || comment.userNickname || "익명",
+    authorNickname: getDisplayAuthorName(comment.authorNickname, comment.userNickname),
     parentCommentId: comment.parentCommentId ?? parentCommentId ?? null,
     depth: comment.depth ?? depth,
     replies: normalizedReplies,
@@ -469,7 +476,7 @@ function buildLecturePostsQuery(params: GetLecturePostsParams) {
 export function getLecturePosts(params: GetLecturePostsParams = {}) {
   const queryString = buildLecturePostsQuery(params);
 
-  return getWithoutCookies<LecturePostsResponse>(`/api/v1/lectures?${queryString}`);
+  return getWithoutCookies<PaginatedPostsResponse<LecturePostSummary>>(`/api/v1/lectures?${queryString}`);
 }
 
 function buildPromotionsQuery(params: GetPromotionsParams = {}) {
@@ -492,7 +499,7 @@ function buildPromotionsQuery(params: GetPromotionsParams = {}) {
 export function getPromotions(params: GetPromotionsParams = {}) {
   const queryString = buildPromotionsQuery(params);
 
-  return getWithCookies<PromotionsResponse>(`/api/v1/promotions?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<PromotionPostSummary>>(`/api/v1/promotions?${queryString}`);
 }
 
 export function createPromotion(body: CreatePromotionRequest) {

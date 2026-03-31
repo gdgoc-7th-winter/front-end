@@ -7,6 +7,7 @@ import {
   deletePostComment,
   deletePromotion,
   flattenPostComments,
+  getDisplayAuthorName,
   getPostComments,
   getPromotionDetail,
   increasePostView,
@@ -114,10 +115,13 @@ function normalizePromotionDetail(value: unknown): NormalizedPromotionDetail | n
     content: toSafeString(post["content"]),
     createdAt: toSafeString(post["createdAt"]),
     authorId: typeof post["authorId"] === "number" ? post["authorId"] : typeof author?.["authorId"] === "number" ? (author["authorId"] as number) : undefined,
-    authorNickname: toSafeString(post["authorNickname"]) || toSafeString(author?.["nickname"], "익명"),
+    authorNickname: getDisplayAuthorName(
+      typeof post["authorNickname"] === "string" ? post["authorNickname"] : undefined,
+      typeof author?.["nickname"] === "string" ? author["nickname"] : undefined,
+    ),
     author: author
       ? {
-          nickname: toSafeString(author["nickname"], "익명"),
+          nickname: getDisplayAuthorName(typeof author["nickname"] === "string" ? author["nickname"] : undefined),
           profileImageUrl: toSafeString(author["profileImageUrl"]) || "/default_profile.png",
           departmentName: toSafeString(author["departmentName"]),
           representativeTrackName: toSafeString(author["representativeTrackName"]),
@@ -161,7 +165,7 @@ export function PromotionsDetailPage() {
 
   const commentsQuery = useQuery({
     queryKey: ["post-comments", numericPostId],
-    queryFn: async () => flattenPostComments((await getPostComments(numericPostId)).data.data),
+    queryFn: async () => flattenPostComments((await getPostComments(numericPostId)).data.comments),
     enabled: canLoad,
     staleTime: 1000 * 30,
   });
@@ -294,7 +298,7 @@ export function PromotionsDetailPage() {
   const isPostScrapped = reactionOverride?.scrapped ?? post?.scrapped ?? false;
   const postLikeCount = reactionOverride?.likeCount ?? post?.likeCount ?? 0;
   const postScrapCount = reactionOverride?.scrapCount ?? post?.scrapCount ?? 0;
-  const authorName = post?.author?.nickname || post?.authorNickname || "익명";
+  const authorName = getDisplayAuthorName(post?.author?.nickname, post?.authorNickname);
   const canManagePost = Boolean(post?.isAuthor) || currentUserQuery.data?.nickname === authorName;
 
   const handleCommentSubmit = async ({ content, parentCommentId }: { content: string; parentCommentId?: number }) => {
@@ -420,7 +424,7 @@ export function PromotionsDetailPage() {
                         <img alt="" className="size-10 rounded-full object-cover" src={comment.profilePicture || "/default_profile.png"} />
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-1">
-                            <p className="text-[13px] font-bold leading-5 text-[#0f172a]">{comment.authorNickname || comment.userNickname || "익명"}</p>
+                            <p className="text-[13px] font-bold leading-5 text-[#0f172a]">{getDisplayAuthorName(comment.authorNickname, comment.userNickname)}</p>
                             {comment.userId === post.authorId ? <span className="rounded-[4px] px-1.5 py-0.5 text-[8px] font-bold tracking-[-0.04em] text-[var(--color-primary-main)]">작성자</span> : null}
                             <span className="pl-2 text-[9px] text-[#94a3b8]">{formatCommentDate(comment.createdAt)}</span>
                           </div>

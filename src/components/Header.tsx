@@ -21,7 +21,6 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import { clearAuthCookies } from "../api/http";
-import { getCurrentUser, ProfileRequestError } from "../api/profile";
 import { useOptionalCurrentUser } from "../hooks/useOptionalCurrentUser";
 
 const desktopNavItems = [
@@ -78,23 +77,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const currentUserQuery = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      try {
-        const response = await getCurrentUser();
-        return response.data;
-      } catch (error) {
-        if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
-          return null;
-        }
-
-        throw error;
-      }
-    },
-    retry: false,
-    staleTime: 1000 * 60 * 5,
-  });
+  const currentUserQuery = useOptionalCurrentUser();
 
   const user = currentUserQuery.data ?? null;
   const logoutMutation = useMutation({
