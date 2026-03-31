@@ -22,6 +22,7 @@ export interface CurrentUserResponse {
   departmentId?: number;
   department?: string;
   departmentName?: string;
+  profileImgUrl?: string;
   profileImage?: string;
   profilePicture?: string;
   track?: ProfileTrack;
@@ -123,13 +124,9 @@ function normalizeCurrentUserResponse(profile: CurrentUserResponse): CurrentUser
 
 export async function getCurrentUser() {
   const response = await requestProfileGet<CurrentUserResponse>(CURRENT_USER_PATH);
-  const normalizedData = isObject(response.data) ? normalizeCurrentUserResponse(response.data as CurrentUserResponse) : response.data;
-
-  console.log("[profile] current user response", {
-    path: CURRENT_USER_PATH,
-    raw: response.data,
-    normalized: normalizedData,
-  });
+  const normalizedData = isObject(response.data)
+    ? normalizeCurrentUserResponse(response.data as CurrentUserResponse)
+    : response.data;
 
   return {
     ...response,
