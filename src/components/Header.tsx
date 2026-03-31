@@ -21,8 +21,7 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import { clearAuthCookies } from "../api/http";
-import { getCurrentUser, isProfileSetupRequiredError, ProfileRequestError } from "../api/profile";
-import type { CurrentUserResponse } from "../api/profile";
+import { getCurrentUser, ProfileRequestError } from "../api/profile";
 
 const desktopNavItems = [
   { label: "자유/정보", to: "/free-info" },
@@ -39,12 +38,6 @@ const mobileDockItems = [
   { label: "강의/수업", to: "/lecture", icon: BookOpenCheck },
   { label: "동아리/홍보", to: "/lecture", icon: Megaphone },
 ];
-
-const dummyUser: CurrentUserResponse = {
-  nickname: "dummy",
-  profilePicture: "/default_profile.png",
-  isDummyProfile: true,
-};
 
 const profileMenuItems: Array<{
   label: string;
@@ -91,10 +84,6 @@ export function Header() {
         const response = await getCurrentUser();
         return response.data;
       } catch (error) {
-        if (isProfileSetupRequiredError(error)) {
-          return dummyUser;
-        }
-
         if (error instanceof ProfileRequestError && (error.status === 401 || error.status === 403)) {
           return null;
         }
