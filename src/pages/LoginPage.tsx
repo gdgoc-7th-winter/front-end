@@ -167,9 +167,9 @@ export function LoginPage() {
           {successMessage ? <p className="text-sm text-green-600">{successMessage}</p> : null}
         </div>
 
-        <div className="mt-10 flex items-center justify-center gap-10 text-base text-[#475569]">
+        <div className="mt-10 flex items-center justify-center gap-15 text-base text-[#475569]">
           <span>계정이 없으신가요?</span>
-          <Link className="underline" to="/signup">
+          <Link className="underline underline-offset-2" to="/signup">
             회원가입 하기
           </Link>
         </div>
@@ -182,11 +182,6 @@ export function LoginPage() {
           <button type="button">문의하기</button>
         </div>
 
-        <div className="mt-8 text-center">
-          <Link className="text-sm text-[#475569] underline-offset-2 hover:underline" to="/">
-            홈으로 돌아가기
-          </Link>
-        </div>
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 
 import { postWithCookies } from "./http";
 
-type UploadType = "PROFILE_IMAGE";
+type UploadType = "PROFILE_IMAGE" | "POST_IMAGE";
 
 const FILES_PRESIGNED_URL_PATH = "/api/v1/files/presigned-url";
 const FILES_COMPLETE_PATH = "/api/v1/files/complete";
@@ -34,6 +34,7 @@ interface CompleteUploadResponse {
 }
 
 const PROFILE_IMAGE_UPLOAD_TYPE: UploadType = "PROFILE_IMAGE";
+const POST_IMAGE_UPLOAD_TYPE: UploadType = "POST_IMAGE";
 
 async function requestPresignedUrl(body: PresignedUrlRequest) {
   return postWithCookies<PresignedUrlResponse, PresignedUrlRequest>(FILES_PRESIGNED_URL_PATH, body);
@@ -43,12 +44,12 @@ async function completeUpload(body: CompleteUploadRequest) {
   return postWithCookies<CompleteUploadResponse, CompleteUploadRequest>(FILES_COMPLETE_PATH, body);
 }
 
-export async function uploadProfileImage(file: File) {
+async function uploadFile(file: File, uploadType: UploadType, failureMessage: string, referenceId = 0) {
   const contentType = file.type || "application/octet-stream";
   const presignedUrlResponse = await requestPresignedUrl({
-    uploadType: PROFILE_IMAGE_UPLOAD_TYPE,
+    uploadType,
     contentType,
-    referenceId: 0,
+    referenceId,
   });
 
   const uploadResponse = await fetch(presignedUrlResponse.data.uploadUrl, {
@@ -60,15 +61,23 @@ export async function uploadProfileImage(file: File) {
   });
 
   if (!uploadResponse.ok) {
-    throw new Error("프로필 사진 업로드에 실패했습니다.");
+    throw new Error(failureMessage);
   }
 
   const completedUploadResponse = await completeUpload({
     objectKey: presignedUrlResponse.data.objectKey,
-    uploadType: PROFILE_IMAGE_UPLOAD_TYPE,
+    uploadType,
     size: file.size,
     contentType,
   });
 
   return completedUploadResponse.data;
+}
+
+export function uploadProfileImage(file: File) {
+  return uploadFile(file, PROFILE_IMAGE_UPLOAD_TYPE, "프로필 사진 업로드에 실패했습니다.");
+}
+
+export function uploadPostImage(file: File, referenceId?: number) {
+  return uploadFile(file, POST_IMAGE_UPLOAD_TYPE, "게시글 이미지 업로드에 실패했습니다.", referenceId ?? 0);
 }
