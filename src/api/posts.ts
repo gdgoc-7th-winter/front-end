@@ -1,5 +1,5 @@
 
-import { deleteWithCookies, getWithCookies, getWithoutCookies, patchWithCookies, postWithCookies, putWithCookies } from "./http";
+import { deleteWithCookies, getWithCookies, patchWithCookies, postWithCookies, putWithCookies } from "./http";
 
 export type BoardPostOrder = "latest" | "views" | "scrap" | "likes";
 export const WITHDRAWN_USER_LABEL = "탈퇴한 사용자";
@@ -322,7 +322,7 @@ function buildBoardPostsQuery(params: GetBoardPostsParams) {
 export function getBoardPosts(params: GetBoardPostsParams) {
   const queryString = buildBoardPostsQuery(params);
 
-  return getWithoutCookies<PaginatedPostsResponse<BoardPostSummary>>(`/api/v1/boards/${params.code}/posts?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<BoardPostSummary>>(`/api/v1/boards/${params.code}/posts?${queryString}`);
 }
 
 export function createBoardPost(code: string, body: CreateBoardPostRequest) {
@@ -476,7 +476,7 @@ function buildLecturePostsQuery(params: GetLecturePostsParams) {
 export function getLecturePosts(params: GetLecturePostsParams = {}) {
   const queryString = buildLecturePostsQuery(params);
 
-  return getWithoutCookies<PaginatedPostsResponse<LecturePostSummary>>(`/api/v1/lectures?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<LecturePostSummary>>(`/api/v1/lectures?${queryString}`);
 }
 
 function buildPromotionsQuery(params: GetPromotionsParams = {}) {
