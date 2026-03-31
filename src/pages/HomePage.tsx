@@ -1,6 +1,31 @@
-﻿import { UserTierIcon } from "../components/UserTierIcon";
+﻿import { useEffect, useRef, useState } from "react";
+import { UserTierIcon } from "../components/UserTierIcon";
 
 export function HomePage() {
+  const heroSlides = [
+    {
+      id: 1,
+      imageUrl: "https://dummyimage.com/1600x900/0f172a/e2e8f0&text=BOJ+18939",
+      category: "코딩 테스트 / 백준 / 실전 문제",
+      title: "오늘의 코딩테스트 문제 : 백준 18939",
+      boardLabel: "코딩 테스트 게시판",
+    },
+    {
+      id: 2,
+      imageUrl: "https://dummyimage.com/1600x900/1e293b/f8fafc&text=BOJ+18939+Review",
+      category: "풀이 리뷰 / 아이디어 정리 / 구현 체크",
+      title: "백준 18939 풀이 포인트를 한 번에 정리해보세요",
+      boardLabel: "문제 풀이 아카이브",
+    },
+    {
+      id: 3,
+      imageUrl: "https://dummyimage.com/1600x900/334155/f8fafc&text=BOJ+18939+Practice",
+      category: "주간 추천 / 알고리즘 / 실전 감각",
+      title: "백준 18939로 실전 감각을 다시 끌어올려보세요",
+      boardLabel: "알고리즘 학습 라운지",
+    },
+  ];
+
   const ranking = [
     { rank: 1, name: "한국외대 지킴이", dept: "영어통번역학과", exp: "EXP 678915892", tier: "루비" as const },
     { rank: 2, name: "훕데 지박령", dept: "컴퓨터공학과", exp: "EXP 6247", tier: "루비" as const },
@@ -36,25 +61,117 @@ export function HomePage() {
     },
   ];
 
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [dragOffsetX, setDragOffsetX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartXRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isDragging) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveSlideIndex((currentIndex) => (currentIndex + 1) % heroSlides.length);
+    }, 10000);
+
+    return () => window.clearInterval(intervalId);
+  }, [heroSlides.length, isDragging]);
+
+  const moveToSlide = (nextIndex: number) => {
+    if (nextIndex < 0) {
+      setActiveSlideIndex(heroSlides.length - 1);
+      return;
+    }
+
+    if (nextIndex >= heroSlides.length) {
+      setActiveSlideIndex(0);
+      return;
+    }
+
+    setActiveSlideIndex(nextIndex);
+  };
+
+  const handleDragStart = (clientX: number) => {
+    dragStartXRef.current = clientX;
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (dragStartXRef.current === null) {
+      return;
+    }
+
+    setDragOffsetX(clientX - dragStartXRef.current);
+  };
+
+  const handleDragEnd = () => {
+    if (dragStartXRef.current === null) {
+      return;
+    }
+
+    const swipeThreshold = 70;
+
+    if (dragOffsetX <= -swipeThreshold) {
+      moveToSlide(activeSlideIndex + 1);
+    } else if (dragOffsetX >= swipeThreshold) {
+      moveToSlide(activeSlideIndex - 1);
+    }
+
+    dragStartXRef.current = null;
+    setDragOffsetX(0);
+    setIsDragging(false);
+  };
+
   return (
     <section className="grid gap-10 md:gap-14">
       <div className="grid gap-5 lg:grid-cols-[1fr_336px]">
-        <article className="relative min-h-[280px] overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 md:min-h-[355px]">
-          <img
-            alt="hero"
-            className="absolute inset-0 h-full w-full object-cover opacity-70"
-            src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1600&q=80"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/40 to-slate-950/95" />
-          <div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
-            <p className="text-xs text-white/70">코딩 테스트 / 백준 / 실전 문제</p>
-            <h1 className="mt-2 text-[24px] font-bold leading-tight tracking-[-0.03em] md:text-[40px]">
-              오늘의 코딩테스트 문제 : 백준 18939
-            </h1>
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-white/85">코딩 테스트 게시판</span>
-              <span className="rounded-full bg-black/45 px-3 py-1">3 / 4</span>
-            </div>
+        <article
+          className="relative min-h-[280px] overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 touch-pan-y select-none md:min-h-[355px]"
+          onMouseDown={(event) => handleDragStart(event.clientX)}
+          onMouseMove={(event) => {
+            if (isDragging) {
+              handleDragMove(event.clientX);
+            }
+          }}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+          onTouchStart={(event) => handleDragStart(event.touches[0].clientX)}
+          onTouchMove={(event) => handleDragMove(event.touches[0].clientX)}
+          onTouchEnd={handleDragEnd}
+        >
+          <div
+            className={`flex h-full ${isDragging ? "" : "transition-transform duration-500 ease-out"}`}
+            style={{ transform: `translateX(calc(${-activeSlideIndex * 100}% + ${dragOffsetX}px))` }}
+          >
+            {heroSlides.map((slide) => (
+              <div key={slide.id} className="relative min-h-[280px] w-full shrink-0 md:min-h-[355px]">
+                <img alt={slide.title} className="absolute inset-0 h-full w-full object-cover opacity-75" src={slide.imageUrl} />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/40 to-slate-950/95" />
+                <div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-7">
+                  <p className="text-xs text-white/70">{slide.category}</p>
+                  <h1 className="mt-2 text-[24px] font-bold leading-tight tracking-[-0.03em] md:text-[40px]">{slide.title}</h1>
+                  <div className="mt-4 flex items-center justify-between gap-4 text-sm">
+                    <span className="text-white/85">{slide.boardLabel}</span>
+                    <span className="rounded-full bg-black/45 px-3 py-1">
+                      {activeSlideIndex + 1} / {heroSlides.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute inset-x-0 bottom-5 z-10 flex justify-center gap-2 md:bottom-6">
+            {heroSlides.map((slide, index) => (
+              <button
+                key={slide.id}
+                aria-label={`${index + 1}번 슬라이드로 이동`}
+                className={`h-2.5 rounded-full transition-all ${activeSlideIndex === index ? "w-8 bg-white" : "w-2.5 bg-white/45"}`}
+                type="button"
+                onClick={() => moveToSlide(index)}
+              />
+            ))}
           </div>
         </article>
 
@@ -67,7 +184,7 @@ export function HomePage() {
             {ranking.map((user) => (
               <div key={user.rank} className="grid grid-cols-[18px_48px_1fr] items-center gap-3">
                 <span className="text-sm font-bold text-slate-900">{user.rank}</span>
-                <img src='default_profile.png' width={40} className="pb-1" />
+                <img src="default_profile.png" width={40} className="pb-1" />
                 <div>
                   <p className="text-sm font-bold text-slate-900">
                     {user.name}
@@ -83,13 +200,10 @@ export function HomePage() {
         </aside>
       </div>
 
-      <div className="h-[140px] overflow-hidden rounded-2xl border border-slate-200 md:h-[200px]">
-        <img
-          alt="banner"
-          className="h-full w-full object-cover"
-          src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1800&q=80"
-        />
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <img alt="GDG on Campus banner" className="h-auto w-full object-cover" src="/gdgoc.png" />
       </div>
+
 
       <section>
         <h2 className="mb-5 text-[28px] font-bold tracking-[-0.03em] text-slate-900 md:mb-7 md:text-[34px]">실시간 인기글</h2>
@@ -117,7 +231,7 @@ export function HomePage() {
           {latest.map((post, idx) => (
             <article key={`${post.title}-${idx}`} className={`grid gap-4 pt-6 ${idx > 0 ? "border-t border-slate-200" : ""}`}>
               <div className="flex items-center gap-3">
-                <img src='default_profile.png' width={40} className="pb-1"/>
+                <img src="default_profile.png" width={40} className="pb-1" />
                 <div>
                   <p className="text-sm font-bold text-slate-900">
                     {post.author}
