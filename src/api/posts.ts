@@ -316,13 +316,13 @@ function buildBoardPostsQuery(params: GetBoardPostsParams) {
     searchParams.append("sort", sortValue);
   });
 
-  return searchParams.toString();
+  return searchParams;
 }
 
 export function getBoardPosts(params: GetBoardPostsParams) {
-  const queryString = buildBoardPostsQuery(params);
+  const query = buildBoardPostsQuery(params);
 
-  return getWithCookies<PaginatedPostsResponse<BoardPostSummary>>(`/api/v1/boards/${params.code}/posts?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<BoardPostSummary>>(`/api/v1/boards/${params.code}/posts`, { query });
 }
 
 export function createBoardPost(code: string, body: CreateBoardPostRequest) {
@@ -373,19 +373,19 @@ function buildPostCommentsQuery(params: GetPostCommentsParams = {}) {
     searchParams.set("cursor", params.cursor);
   }
 
-  return searchParams.toString();
+  return searchParams;
 }
 
 export function getPostComments(postId: number, params: GetPostCommentsParams = {}) {
-  const queryString = buildPostCommentsQuery(params);
+  const query = buildPostCommentsQuery(params);
 
-  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments?${queryString}`);
+  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments`, { query });
 }
 
 export function getCommentReplies(postId: number, parentCommentId: number, params: GetPostCommentsParams = {}) {
-  const queryString = buildPostCommentsQuery(params);
+  const query = buildPostCommentsQuery(params);
 
-  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments/${parentCommentId}/comments?${queryString}`);
+  return getWithCookies<CommentCursorResponse>(`/api/v1/posts/${postId}/comments/${parentCommentId}/comments`, { query });
 }
 
 function getTrimmedDisplayValue(value?: string | null) {
@@ -470,13 +470,13 @@ function buildLecturePostsQuery(params: GetLecturePostsParams) {
     searchParams.append("sort", sortValue);
   });
 
-  return searchParams.toString();
+  return searchParams;
 }
 
 export function getLecturePosts(params: GetLecturePostsParams = {}) {
-  const queryString = buildLecturePostsQuery(params);
+  const query = buildLecturePostsQuery(params);
 
-  return getWithCookies<PaginatedPostsResponse<LecturePostSummary>>(`/api/v1/lectures?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<LecturePostSummary>>("/api/v1/lectures", { query });
 }
 
 function buildPromotionsQuery(params: GetPromotionsParams = {}) {
@@ -493,13 +493,13 @@ function buildPromotionsQuery(params: GetPromotionsParams = {}) {
     searchParams.append("sort", sortValue);
   });
 
-  return searchParams.toString();
+  return searchParams;
 }
 
 export function getPromotions(params: GetPromotionsParams = {}) {
-  const queryString = buildPromotionsQuery(params);
+  const query = buildPromotionsQuery(params);
 
-  return getWithCookies<PaginatedPostsResponse<PromotionPostSummary>>(`/api/v1/promotions?${queryString}`);
+  return getWithCookies<PaginatedPostsResponse<PromotionPostSummary>>("/api/v1/promotions", { query });
 }
 
 export function createPromotion(body: CreatePromotionRequest) {

@@ -17,6 +17,7 @@ interface RequestOptions<B> {
   body?: B;
   errorFactory?: (message: string, status?: number) => Error;
   headers?: HeadersInit;
+  query?: string | URLSearchParams;
 }
 
 function getCookieValue(name: string) {
@@ -52,27 +53,54 @@ export function clearAuthCookies() {
   });
 }
 
-export function buildApiUrl(path: string) {
+function normalizeQueryString(query?: string | URLSearchParams) {
+  if (!query) {
+    return "";
+  }
+
+  const queryString = typeof query === "string" ? query : query.toString();
+  return queryString.replace(/^\?/, "");
+}
+
+export function buildApiUrl(path: string, query?: string | URLSearchParams) {
   if (/^https?:\/\//i.test(path)) {
-    return path;
+    const url = new URL(path);
+    const queryString = normalizeQueryString(query);
+
+    if (queryString) {
+      url.search = queryString;
+    }
+
+    return url.toString();
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const queryString = normalizeQueryString(query);
 
   // In development, always call the current frontend origin so Vite can
   // intercept `/api/*` and forward it through the configured dev proxy.
   if (import.meta.env.DEV) {
-    return new URL(normalizedPath, window.location.origin).toString();
+    const url = new URL(normalizedPath, window.location.origin);
+
+    if (queryString) {
+      url.search = queryString;
+    }
+
+    return url.toString();
   }
 
   if (!API_BASE_URL) {
-    return normalizedPath;
+    return queryString ? `${normalizedPath}?${queryString}` : normalizedPath;
   }
 
   const baseUrl = new URL(API_BASE_URL);
   const basePath = baseUrl.pathname.endsWith("/") ? baseUrl.pathname.slice(0, -1) : baseUrl.pathname;
 
   baseUrl.pathname = `${basePath}${normalizedPath}`;
+
+  if (queryString) {
+    baseUrl.search = queryString;
+  }
 
   return baseUrl.toString();
 }
@@ -119,7 +147,7 @@ async function executeRequest<T, B>(
   const createError = options?.errorFactory ?? ((message: string, status?: number) => new ApiRequestError(message, status));
 
   try {
-    const response = await fetch(buildApiUrl(path), {
+    const response = await fetch(buildApiUrl(path, options?.query), {
       method,
       ...(shouldIncludeCookies ? { credentials: "include" as const } : {}),
       headers: shouldIncludeCookies ? createAuthHeaders(options?.headers) : createDefaultHeaders(options?.headers),
