@@ -31,7 +31,6 @@ export interface CurrentUserResponse {
   profileImgUrl?: string;
   profileImage?: string;
   profilePicture?: string;
-  profileImgUrl?: string;
   track?: ProfileTrack;
   trackName?: string;
   primaryTrack?: string;
