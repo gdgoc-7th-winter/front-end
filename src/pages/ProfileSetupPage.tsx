@@ -235,7 +235,7 @@ function SocialLoginRow({
 
 function PasswordRequirement({ label, isValid }: { label: string; isValid: boolean }) {
   return (
-    <div className={`flex items-center gap-3 text-[15px] leading-6 ${isValid ? "text-[#64748b]" : "text-[#94a3b8]"}`}>
+    <div className={`flex items-center gap-3 text-[15px] leading-6 ${isValid ? "text-[#34a853]" : "text-[#ea4335]"}`}>
       <Check className="size-5 shrink-0" strokeWidth={2.2} />
       <span>{label}</span>
     </div>
@@ -599,7 +599,26 @@ export function ProfileSetupPage() {
     { label: "연속 3자 이상 동일한 문자/숫자 제외", isValid: !/(.)\1\1/.test(newPassword) },
   ];
   const isCurrentPasswordEntered = currentPassword.trim().length > 0;
+  const isNewPasswordValid = newPassword.length > 0 && passwordRequirements.every((requirement) => requirement.isValid);
   const isConfirmPasswordMatched = confirmNewPassword.length > 0 && confirmNewPassword === newPassword;
+  const currentPasswordInputClassName =
+    currentPassword.length === 0
+      ? "border-[#d9e1ea] text-[#1e293b] focus:border-[#5E9CE6]"
+      : isCurrentPasswordEntered
+        ? "border-[#34a853] text-[#1e293b] focus:border-[#34a853]"
+        : "border-[#ea4335] text-[#1e293b] focus:border-[#ea4335]";
+  const newPasswordInputClassName =
+    newPassword.length === 0
+      ? "border-[#d9e1ea] text-[#1e293b] focus:border-[#5E9CE6]"
+      : isNewPasswordValid
+        ? "border-[#34a853] text-[#1e293b] focus:border-[#34a853]"
+        : "border-[#ea4335] text-[#1e293b] focus:border-[#ea4335]";
+  const confirmNewPasswordInputClassName =
+    confirmNewPassword.length === 0
+      ? "border-[#d9e1ea] text-[#1e293b] focus:border-[#5E9CE6]"
+      : isConfirmPasswordMatched
+        ? "border-[#34a853] text-[#1e293b] focus:border-[#34a853]"
+        : "border-[#ea4335] text-[#1e293b] focus:border-[#ea4335]";
   const isPasswordFormValid = isCurrentPasswordEntered && passwordRequirements.every((requirement) => requirement.isValid) && isConfirmPasswordMatched;
   const isLoading = currentUserQuery.isLoading;
   const isSetupRequired = Boolean(profile?.isDummyProfile);
@@ -1175,7 +1194,7 @@ export function ProfileSetupPage() {
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className={`h-12 w-full rounded-[4px] border bg-white px-4 pr-12 text-[16px] outline-none placeholder:text-[#b6c0cc] ${currentPasswordInputClassName}`}
                             placeholder="현재 비밀번호"
                             type={isCurrentPasswordVisible ? "text" : "password"}
                             value={currentPassword}
@@ -1195,7 +1214,7 @@ export function ProfileSetupPage() {
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className={`h-12 w-full rounded-[4px] border bg-white px-4 pr-12 text-[16px] outline-none placeholder:text-[#b6c0cc] ${newPasswordInputClassName}`}
                             placeholder="새 비밀번호"
                             type={isNewPasswordVisible ? "text" : "password"}
                             value={newPassword}
@@ -1220,7 +1239,7 @@ export function ProfileSetupPage() {
                       <div className="grid gap-[10px]">
                         <label className="relative">
                           <input
-                            className="h-12 w-full rounded-[4px] border border-[#d9e1ea] bg-white px-4 pr-12 text-[16px] text-[#1e293b] outline-none placeholder:text-[#b6c0cc]"
+                            className={`h-12 w-full rounded-[4px] border bg-white px-4 pr-12 text-[16px] outline-none placeholder:text-[#b6c0cc] ${confirmNewPasswordInputClassName}`}
                             placeholder="새 비밀번호 확인"
                             type={isConfirmNewPasswordVisible ? "text" : "password"}
                             value={confirmNewPassword}

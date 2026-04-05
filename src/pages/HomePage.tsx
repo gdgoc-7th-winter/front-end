@@ -1,5 +1,15 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { UserTierIcon } from "../components/UserTierIcon";
+
+type RankingPeriod = "weekly" | "monthly";
+type RankingUser = {
+  rank: number;
+  name: string;
+  dept: string;
+  exp: string;
+  tier: "우드" | "브론즈" | "실버" | "골드" | "플래티넘" | "에메랄드" | "루비" | "다이아" | "더미";
+};
 
 export function HomePage() {
   const heroSlides = [
@@ -26,12 +36,22 @@ export function HomePage() {
     },
   ];
 
-  const ranking = [
-    { rank: 1, name: "한국외대 지킴이", dept: "영어통번역학과", exp: "EXP 678915892", tier: "루비" as const },
-    { rank: 2, name: "훕데 지박령", dept: "컴퓨터공학과", exp: "EXP 6247", tier: "루비" as const },
-    { rank: 3, name: "한국외대 6학년", dept: "산업공학과", exp: "EXP 4522", tier: "다이아" as const },
-    { rank: 4, name: "바이브코딩 물러가라", dept: "컴퓨터공학과", exp: "EXP 2222", tier: "에메랄드" as const },
-  ];
+  const rankingPeriods: RankingPeriod[] = ["weekly", "monthly"];
+
+  const rankingByPeriod: Record<RankingPeriod, RankingUser[]> = {
+    weekly: [
+      { rank: 1, name: "한국외대 지킴이", dept: "영어통번역학과", exp: "EXP 678915892", tier: "루비" },
+      { rank: 2, name: "훕데 지박령", dept: "컴퓨터공학과", exp: "EXP 6247", tier: "루비" },
+      { rank: 3, name: "한국외대 6학년", dept: "산업공학과", exp: "EXP 4522", tier: "다이아" },
+      { rank: 4, name: "바이브코딩 물러가라", dept: "컴퓨터공학과", exp: "EXP 2222", tier: "에메랄드" },
+    ],
+    monthly: [
+      { rank: 1, name: "컴공 밤샘러", dept: "컴퓨터공학과", exp: "EXP 9320", tier: "루비" },
+      { rank: 2, name: "자료구조 장인", dept: "정보통신공학과", exp: "EXP 8840", tier: "다이아" },
+      { rank: 3, name: "과제 끝내자", dept: "산업경영공학과", exp: "EXP 8012", tier: "에메랄드" },
+      { rank: 4, name: "알고리즘 산책", dept: "수학과", exp: "EXP 7740", tier: "플래티넘" },
+    ],
+  };
 
   const popular = [
     "이제 더는 PPT 만들기 싫은 사람들을 위한 6가지 툴",
@@ -64,7 +84,12 @@ export function HomePage() {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [dragOffsetX, setDragOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [activeRankingPeriodIndex, setActiveRankingPeriodIndex] = useState(0);
   const dragStartXRef = useRef<number | null>(null);
+
+  const activeRankingPeriod = rankingPeriods[activeRankingPeriodIndex];
+  const rankingTitle = activeRankingPeriod === "weekly" ? "주간 랭킹" : "월간 랭킹";
+  const ranking = rankingByPeriod[activeRankingPeriod];
 
   useEffect(() => {
     if (isDragging) {
@@ -123,6 +148,16 @@ export function HomePage() {
     setIsDragging(false);
   };
 
+  const moveRankingPeriod = (direction: "prev" | "next") => {
+    setActiveRankingPeriodIndex((currentIndex) => {
+      if (direction === "prev") {
+        return currentIndex === 0 ? rankingPeriods.length - 1 : currentIndex - 1;
+      }
+
+      return currentIndex === rankingPeriods.length - 1 ? 0 : currentIndex + 1;
+    });
+  };
+
   return (
     <section className="grid gap-10 md:gap-14">
       <div className="grid gap-5 lg:grid-cols-[1fr_336px]">
@@ -175,14 +210,31 @@ export function HomePage() {
           </div>
         </article>
 
-        <aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 backdrop-blur-sm md:p-6">
+        <aside className="rounded-3xl border border-[#f5f7fb] bg-white/88 p-5 backdrop-blur-sm md:p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-800">주간 랭킹</h2>
-            <span className="text-slate-400">‹ ›</span>
+            <h2 className="text-xl font-bold text-slate-800">{rankingTitle}</h2>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-label="이전 랭킹 보기"
+                className="grid size-8 place-items-center rounded-2xl border border-[#f5f7fb] bg-white text-[#94a3b8] shadow-[0_10px_28px_rgba(148,163,184,0.14)] transition hover:text-slate-700"
+                onClick={() => moveRankingPeriod("prev")}
+              >
+                <ChevronLeft className="size-5" strokeWidth={2.1} />
+              </button>
+              <button
+                type="button"
+                aria-label="다음 랭킹 보기"
+                className="grid size-8 place-items-center rounded-2xl border border-[#f5f7fb] bg-white text-[#94a3b8] shadow-[0_10px_28px_rgba(148,163,184,0.14)] transition hover:text-slate-700"
+                onClick={() => moveRankingPeriod("next")}
+              >
+                <ChevronRight className="size-5" strokeWidth={2.1} />
+              </button>
+            </div>
           </div>
           <div className="grid gap-3">
             {ranking.map((user) => (
-              <div key={user.rank} className="grid grid-cols-[18px_48px_1fr] items-center gap-3">
+              <div key={`${activeRankingPeriod}-${user.rank}`} className="grid grid-cols-[18px_48px_1fr] items-center gap-3">
                 <span className="text-sm font-bold text-slate-900">{user.rank}</span>
                 <img src="default_profile.png" width={40} className="pb-1" />
                 <div>
@@ -203,7 +255,6 @@ export function HomePage() {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <img alt="GDG on Campus banner" className="h-auto w-full object-cover" src="/gdgoc.png" />
       </div>
-
 
       <section>
         <h2 className="mb-5 text-[28px] font-bold tracking-[-0.03em] text-slate-900 md:mb-7 md:text-[34px]">실시간 인기글</h2>
