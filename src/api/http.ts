@@ -2,6 +2,8 @@
 import type { CommonResponse } from "../types/auth";
 
 const API_BASE_URL = import.meta.env["VITE_SOME_KEY_API_BASE_URL"] as string | undefined;
+const CSRF_TOKEN_STORAGE_KEY = "csrf-token";
+let csrfTokenCache: string | null = null;
 
 export class ApiRequestError extends Error {
   public readonly status?: number;
@@ -38,6 +40,58 @@ function getCookieValue(name: string) {
   return decodeURIComponent(value);
 }
 
+function getStoredCsrfToken() {
+  if (csrfTokenCache) {
+    return csrfTokenCache;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const storedToken = window.sessionStorage.getItem(CSRF_TOKEN_STORAGE_KEY);
+
+  if (!storedToken) {
+    return null;
+  }
+
+  csrfTokenCache = storedToken;
+  return storedToken;
+}
+
+function setStoredCsrfToken(token: string | null) {
+  csrfTokenCache = token;
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!token) {
+    window.sessionStorage.removeItem(CSRF_TOKEN_STORAGE_KEY);
+    return;
+  }
+
+  window.sessionStorage.setItem(CSRF_TOKEN_STORAGE_KEY, token);
+}
+
+function getCsrfToken() {
+  return getCookieValue("XSRF-TOKEN") ?? getCookieValue("CSRF-TOKEN") ?? getStoredCsrfToken();
+}
+
+function persistCsrfTokenFromResponse(response: Response) {
+  const nextToken =
+    response.headers.get("X-XSRF-TOKEN") ??
+    response.headers.get("X-CSRF-TOKEN") ??
+    response.headers.get("x-xsrf-token") ??
+    response.headers.get("x-csrf-token");
+
+  if (!nextToken) {
+    return;
+  }
+
+  setStoredCsrfToken(nextToken);
+}
+
 function expireCookie(name: string, path: string) {
   document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}; SameSite=Lax`;
 }
@@ -51,6 +105,8 @@ export function clearAuthCookies() {
     expireCookie(name, "/");
     expireCookie(name, "/api");
   });
+
+  setStoredCsrfToken(null);
 }
 
 function normalizeQueryString(query?: string | URLSearchParams) {
@@ -107,7 +163,7 @@ export function buildApiUrl(path: string, query?: string | URLSearchParams) {
 
 function createAuthHeaders(headers?: HeadersInit) {
   const nextHeaders = new Headers(headers ?? {});
-  const xsrfToken = getCookieValue("XSRF-TOKEN");
+  const xsrfToken = getCsrfToken();
 
   if (!nextHeaders.has("Content-Type")) {
     nextHeaders.set("Content-Type", "application/json");
@@ -119,6 +175,10 @@ function createAuthHeaders(headers?: HeadersInit) {
 
   if (xsrfToken && !nextHeaders.has("X-XSRF-TOKEN")) {
     nextHeaders.set("X-XSRF-TOKEN", xsrfToken);
+  }
+
+  if (xsrfToken && !nextHeaders.has("X-CSRF-TOKEN")) {
+    nextHeaders.set("X-CSRF-TOKEN", xsrfToken);
   }
 
   return nextHeaders;
@@ -153,6 +213,10 @@ async function executeRequest<T, B>(
       headers: shouldIncludeCookies ? createAuthHeaders(options?.headers) : createDefaultHeaders(options?.headers),
       ...(options?.body === undefined ? {} : { body: JSON.stringify(options.body) }),
     });
+
+    if (shouldIncludeCookies) {
+      persistCsrfTokenFromResponse(response);
+    }
 
     let result: CommonResponse<T> | null = null;
 

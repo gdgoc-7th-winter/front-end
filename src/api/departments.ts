@@ -14,7 +14,7 @@ export interface DepartmentOption {
   name: string;
 }
 
-function buildDepartmentSearchPath(name: string) {
+function buildDepartmentSearchQuery(name: string) {
   const searchParams = new URLSearchParams();
   const trimmedName = name.trim();
 
@@ -22,13 +22,13 @@ function buildDepartmentSearchPath(name: string) {
     searchParams.set("name", trimmedName);
   }
 
-  const queryString = searchParams.toString();
-
-  return queryString ? `/api/v1/departments?${queryString}` : "/api/v1/departments";
+  return searchParams;
 }
 
 export async function searchDepartmentNames(name: string) {
-  const response = await getWithCookies<DepartmentSearchItem[]>(buildDepartmentSearchPath(name));
+  const response = await getWithCookies<DepartmentSearchItem[]>("/api/v1/departments", {
+    query: buildDepartmentSearchQuery(name),
+  });
 
   const departmentMap = new Map<number, DepartmentOption>();
 

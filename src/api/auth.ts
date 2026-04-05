@@ -6,7 +6,7 @@ import type {
   SignUpRequest,
   VerifyEmailCodeRequest,
 } from "../types/auth";
-import { buildApiUrl, postWithCookies } from "./http";
+import { buildApiUrl, getWithCookies, postWithCookies } from "./http";
 
 export type SocialAuthProvider = "google" | "kakao" | "naver" | "github";
 
@@ -26,7 +26,12 @@ export function logout() {
   return requestAuth<string, Record<string, never>>("/api/v1/users/logout", {});
 }
 
-export function changePassword(payload: ChangePasswordRequest) {
+async function refreshPasswordChangeContext() {
+  await getWithCookies<unknown>("/api/v1/me/profile");
+}
+
+export async function changePassword(payload: ChangePasswordRequest) {
+  await refreshPasswordChangeContext();
   return requestAuth<string, ChangePasswordRequest>("/api/v1/users/change-password", payload);
 }
 

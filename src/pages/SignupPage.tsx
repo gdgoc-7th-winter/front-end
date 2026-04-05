@@ -276,7 +276,19 @@ export function SignupPage() {
     { label: "연속 3자 이상 동일한 문자/숫자 제외", isValid: !hasRepeatedPasswordCharacter(passwordValue) },
   ];
   const hasEnteredPassword = passwordValue.length > 0;
+  const isPasswordValid = hasEnteredPassword && passwordRequirements.every((requirement) => requirement.isValid);
   const isConfirmPasswordMatched = confirmPasswordValue.length > 0 && confirmPasswordValue === passwordValue;
+  const passwordInputClassName = hasEnteredPassword
+    ? isPasswordValid
+      ? "border-[#34a853] text-[#1d2740] focus:border-[#34a853]"
+      : "border-[#ea4335] text-[#1d2740] focus:border-[#ea4335]"
+    : "border-[#a8bfd9] text-[#23324c] focus:border-[#5E9CE6]";
+  const confirmPasswordInputClassName =
+    confirmPasswordValue.length === 0
+      ? "border-[#a8bfd9] text-[#23324c] focus:border-[#5E9CE6]"
+      : isConfirmPasswordMatched
+        ? "border-[#34a853] text-[#1d2740] focus:border-[#34a853]"
+        : "border-[#ea4335] text-[#1d2740] focus:border-[#ea4335]";
   const confirmPasswordRequirementStatus: PasswordRequirementStatus =
     confirmPasswordValue.length === 0 ? "default" : isConfirmPasswordMatched ? "success" : "error";
   const isSendingVerification = sendVerificationMutation.isPending;
@@ -529,7 +541,7 @@ export function SignupPage() {
           <div className="grid gap-[5px]">
             <label className="relative">
               <input
-                className="h-12 w-full rounded-xl border border-[#a8bfd9] bg-transparent px-4 pr-12 text-sm text-[#23324c] outline-none placeholder:text-[#9ca9bb]"
+                className={`h-12 w-full rounded-xl border bg-transparent px-4 pr-12 text-sm outline-none placeholder:text-[#9ca9bb] ${passwordInputClassName}`}
                 placeholder="비밀번호"
                 type={isPasswordVisible ? "text" : "password"}
                 {...register("password", {
@@ -562,7 +574,7 @@ export function SignupPage() {
 
             <label className="relative">
               <input
-                className="h-12 w-full rounded-xl border border-[#a8bfd9] bg-transparent px-4 pr-12 text-sm text-[#23324c] outline-none placeholder:text-[#9ca9bb]"
+                className={`h-12 w-full rounded-xl border bg-transparent px-4 pr-12 text-sm outline-none placeholder:text-[#9ca9bb] ${confirmPasswordInputClassName}`}
                 placeholder="비밀번호 확인"
                 type={isConfirmPasswordVisible ? "text" : "password"}
                 {...register("confirmPassword", {
