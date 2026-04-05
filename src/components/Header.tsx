@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Bell,
   BookOpenCheck,
   ChevronRight,
   CircleUserRound,
@@ -12,7 +11,6 @@ import {
   LogOut,
   Megaphone,
   Medal,
-  MessageSquareMore,
   Newspaper,
   Search,
   Settings,
@@ -159,21 +157,7 @@ export function Header() {
               <Search className="size-4.5 md:size-5" strokeWidth={2.2} />
             </button>
 
-            <button
-              className="grid size-9 place-items-center rounded-full text-[#0f172a] transition hover:bg-[#f8fafc] md:size-10"
-              type="button"
-              aria-label="알림"
-            >
-              <Bell className="size-4.5 md:size-5" strokeWidth={2.1} />
-            </button>
-
-            <button
-              className="grid size-9 place-items-center rounded-full text-[#0f172a] transition hover:bg-[#f8fafc] md:size-10"
-              type="button"
-              aria-label="메시지"
-            >
-              <MessageSquareMore className="size-4.5 md:size-5" strokeWidth={2.1} />
-            </button>
+            
 
             {user ? (
               <div className="relative" ref={profileMenuRef}>
@@ -259,11 +243,11 @@ export function Header() {
               <div className="size-10 rounded-full bg-[#f8fafc]" />
             ) : (
               <Link
-                className="grid size-10 place-items-center rounded-full transition hover:bg-[#f8fafc]"
+                className="inline-flex h-10 items-center justify-center px-4 text-sm font-semibold text-[#0f172a]"
                 to="/login"
                 aria-label="로그인"
               >
-                <CircleUserRound className="size-5 text-[#0f172a]" strokeWidth={2} />
+                로그인
               </Link>
             )}
           </div>
