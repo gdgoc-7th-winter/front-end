@@ -7,6 +7,7 @@
 
 # 사이트 구조 
 
+<img width="2398" height="2005" alt="mermaid-diagram" src="https://github.com/user-attachments/assets/e158eb90-151b-4daa-8675-daf0fb3de7c7" />
 
 
 ## 메인 페이지
